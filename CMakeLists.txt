@@ -3,21 +3,25 @@ project(sketchfab)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(GLUT REQUIRED)
-include_directories(${GLUT_INCLUDE_DIRS})
-link_directories(${GLUT_LIBRARY_DIRS})
-add_definitions(${GLUT_DEFINITIONS})
-if (NOT GLUT_FOUND)
-    message(ERROR " GLUT not found!")
-endif (NOT GLUT_FOUND)
+set(LIBS m Xrandr Xi X11 Xxf86vm pthread dl Xinerama Xcursor)
 
 find_package(OpenGL REQUIRED)
-include_directories(${OpenGL_INCLUDE_DIRS})
-link_directories(${OpenGL_LIBRARY_DIRS})
-add_definitions(${OpenGL_DEFINITIONS})
-if(NOT OPENGL_FOUND)
-    message(ERROR " OPENGL not found!")
-endif(NOT OPENGL_FOUND)
+set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+#set(LIBS ${LIBS} GL)
 
-add_executable(sketchfab main.cpp)
-target_link_libraries(sketchfab ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
+find_package(glfw3 3.3 REQUIRED)
+set(LIBS ${LIBS} glfw)
+
+#find_package(ASSIMP REQUIRED)
+
+#message(${LIBS})
+
+add_library(GLAD src/glad.c)
+target_link_libraries(GLAD ${LIBS})
+
+file(GLOB SRC "src/*.cpp")
+
+add_executable(sketchfab ${SRC})
+target_link_libraries(sketchfab ${LIBS} GLAD)
+
+include_directories(./includes)
