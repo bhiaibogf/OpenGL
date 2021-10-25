@@ -17,11 +17,13 @@ set(LIBS ${LIBS} glfw)
 #message(${LIBS})
 
 add_library(GLAD src/glad.c)
-target_link_libraries(GLAD ${LIBS})
+target_link_libraries(GLAD dl)
+
+add_library(STB_IMAGE "src/stb_image.cpp")
 
 file(GLOB SRC "src/*.cpp")
 
 add_executable(sketchfab ${SRC})
-target_link_libraries(sketchfab ${LIBS} GLAD)
+target_link_libraries(sketchfab ${LIBS} GLAD STB_IMAGE)
 
 include_directories(./includes)
