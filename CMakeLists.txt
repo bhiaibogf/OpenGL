@@ -12,6 +12,8 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 find_package(glfw3 3.3 REQUIRED)
 set(LIBS ${LIBS} glfw)
 
+find_package(glm REQUIRED)
+
 #find_package(ASSIMP REQUIRED)
 
 #message(${LIBS})
