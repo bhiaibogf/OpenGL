@@ -21,9 +21,13 @@ target_link_libraries(GLAD dl)
 
 add_library(STB_IMAGE "src/stb_image.cpp")
 
-file(GLOB SRC "src/*.cpp")
+file(GLOB LEARN_SRC "src/LearnOpenGL/*.cpp")
 
-add_executable(sketchfab ${SRC})
-target_link_libraries(sketchfab ${LIBS} GLAD STB_IMAGE)
+add_executable(LearnOpenGL ${LEARN_SRC})
+target_link_libraries(LearnOpenGL ${LIBS} GLAD STB_IMAGE)
+
+#file(GLOB SRC "src/*.cpp")
+#add_executable(sketchfab ${SRC})
+#target_link_libraries(sketchfab ${LIBS} GLAD STB_IMAGE)
 
 include_directories(./includes)
