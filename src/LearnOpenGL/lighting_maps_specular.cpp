@@ -80,8 +80,8 @@ int main() {
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader lightingShader("4.1.lighting_maps.vs", "4.1.lighting_maps.fs");
-    Shader lightCubeShader("4.1.light_cube.vs", "4.1.light_cube.fs");
+    Shader lightingShader("4.2.lighting_maps.vs", "4.2.lighting_maps.fs");
+    Shader lightCubeShader("4.2.light_cube.vs", "4.2.light_cube.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -158,12 +158,20 @@ int main() {
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
     unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/container2.png").c_str());
+    unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/container2_specular.png").c_str());
 
     // shader configuration
     // --------------------
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
+    lightingShader.setInt("material.specular", 1);
 
+    // bind diffuse map
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    // bind specular map
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
 
     // render loop
     // -----------
@@ -194,7 +202,6 @@ int main() {
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         // material properties
-        lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         lightingShader.setFloat("material.shininess", 64.0f);
 
         // view/projection transformations
@@ -208,9 +215,7 @@ int main() {
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
-        // bind diffuse map
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
 
         // render the cube
         glBindVertexArray(cubeVAO);
@@ -271,7 +276,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
