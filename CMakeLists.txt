@@ -14,7 +14,8 @@ set(LIBS ${LIBS} glfw)
 
 find_package(glm REQUIRED)
 
-#find_package(ASSIMP REQUIRED)
+find_package(ASSIMP REQUIRED)
+set(LIBS ${LIBS} ${ASSIMP_LIBRARIES})
 
 #message(${LIBS})
 
