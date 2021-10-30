@@ -24,6 +24,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 float yaw = 0.f, pitch = 0.f;
+float x_off = 0.f, y_off = 0.f;
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -121,18 +122,19 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 
         auto scale = glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f));
 
-        auto model_rotate = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
+        auto x_translate = glm::translate(glm::mat4(1.f), camera.getRight() * x_off * 0.01f);
+        auto y_translate = glm::translate(glm::mat4(1.f), camera.getWorldUp() * y_off * 0.01f);
 
         auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.getWorldUp());
         auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
 
-        auto translate = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-
-        model = y_rotate * x_rotate * translate * scale * model_rotate;
+        model = y_rotate * x_rotate * y_translate * x_translate * model;
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
@@ -173,36 +175,52 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-bool lbutton_down = false;
+bool left_button_down = false, right_button_down = false;
 
 void mouse_click_callback(GLFWwindow *window, int button, int action, int mods) {
     double xpos;
     double ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        if (GLFW_PRESS == action) {
-            lbutton_down = true;
-            lastX = xpos;
-            lastY = ypos;
-        } else if (GLFW_RELEASE == action) {
-            lbutton_down = false;
-        }
+
+    switch (button) {
+        case GLFW_MOUSE_BUTTON_LEFT:
+            if (GLFW_PRESS == action) {
+                left_button_down = true;
+                lastX = xpos;
+                lastY = ypos;
+            } else if (GLFW_RELEASE == action) {
+                left_button_down = false;
+            }
+            break;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            if (GLFW_PRESS == action) {
+                right_button_down = true;
+                lastX = xpos;
+                lastY = ypos;
+            } else if (GLFW_RELEASE == action) {
+                right_button_down = false;
+            }
+            break;
     }
 }
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (lbutton_down) {
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
-        lastX = xpos;
-        lastY = ypos;
+    lastX = xpos;
+    lastY = ypos;
 
+    if (left_button_down) {
         // camera.ProcessMouseMovement(xoffset, yoffset);
         yaw += xoffset;
         pitch -= yoffset;
+    }
+    if (right_button_down) {
+        x_off += xoffset;
+        y_off += yoffset;
     }
 }
 
