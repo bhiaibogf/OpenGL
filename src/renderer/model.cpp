@@ -17,16 +17,20 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
+void mouse_click_callback(GLFWwindow *window, int button, int action, int mods);
+
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
+
+float yaw = 0.f, pitch = 0.f;
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -43,10 +47,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
     // glfw window creation
     // --------------------
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
@@ -57,6 +57,7 @@ int main() {
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_click_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -120,10 +121,18 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model,
-                           glm::vec3(1.f, 1.f, 1.f));    // it's a bit too big for our scene, so scale it down
+
+        auto scale = glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f));
+
+        auto model_rotate = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
+
+        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.getWorldUp());
+        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
+
+        auto translate = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+
+        model = y_rotate * x_rotate * translate * scale * model_rotate;
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
@@ -164,22 +173,37 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+bool lbutton_down = false;
+
+void mouse_click_callback(GLFWwindow *window, int button, int action, int mods) {
+    double xpos;
+    double ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (GLFW_PRESS == action) {
+            lbutton_down = true;
+            lastX = xpos;
+            lastY = ypos;
+        } else if (GLFW_RELEASE == action) {
+            lbutton_down = false;
+        }
+    }
+}
+
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (firstMouse) {
+    if (lbutton_down) {
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
         lastX = xpos;
         lastY = ypos;
-        firstMouse = false;
+
+        // camera.ProcessMouseMovement(xoffset, yoffset);
+        yaw += xoffset;
+        pitch -= yoffset;
     }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
