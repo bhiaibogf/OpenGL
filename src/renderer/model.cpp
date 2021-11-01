@@ -175,7 +175,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-bool left_button_down = false, right_button_down = false;
+bool left_button_down = false, right_button_down = false, middle_button_down = false;
 
 void mouse_click_callback(GLFWwindow *window, int button, int action, int mods) {
     double xpos;
@@ -201,26 +201,37 @@ void mouse_click_callback(GLFWwindow *window, int button, int action, int mods) 
                 right_button_down = false;
             }
             break;
+        case GLFW_MOUSE_BUTTON_MIDDLE:
+            if (GLFW_PRESS == action) {
+                middle_button_down = true;
+                lastX = xpos;
+                lastY = ypos;
+            } else if (GLFW_RELEASE == action) {
+                middle_button_down = false;
+            }
+            break;
     }
 }
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float x_offset = xpos - lastX;
+    float y_offset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
     lastX = xpos;
     lastY = ypos;
 
     if (left_button_down) {
-        // camera.ProcessMouseMovement(xoffset, yoffset);
-        yaw += xoffset;
-        pitch -= yoffset;
+        yaw += x_offset;
+        pitch -= y_offset;
     }
     if (right_button_down) {
-        x_off += xoffset;
-        y_off += yoffset;
+        x_off += x_offset;
+        y_off += y_offset;
+    }
+    if (middle_button_down) {
+        camera.ProcessMouseMovement(x_offset, y_offset);
     }
 }
 
