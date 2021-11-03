@@ -85,9 +85,9 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader shader("3.2.1.point_shadows.vs", "3.2.1.point_shadows.fs");
-    Shader simpleDepthShader("3.2.1.point_shadows_depth.vs", "3.2.1.point_shadows_depth.fs",
-                             "3.2.1.point_shadows_depth.gs");
+    Shader shader("3.2.2.point_shadows.vs", "3.2.2.point_shadows.fs");
+    Shader simpleDepthShader("3.2.2.point_shadows_depth.vs", "3.2.2.point_shadows_depth.fs",
+                             "3.2.2.point_shadows_depth.gs");
 
     // load textures
     // -------------
