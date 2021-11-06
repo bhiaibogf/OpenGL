@@ -39,3 +39,5 @@ cmake-build-release/
 
 asset/
 resources/
+
+src/renderer/test/
