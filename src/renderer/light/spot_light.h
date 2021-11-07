@@ -7,11 +7,16 @@
 
 #include "light.h"
 
-class SpotLight : Light {
+class SpotLight : public Light {
 public:
+    SpotLight(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float cut_off, float outer_cut_off);
+
+    ~SpotLight() override = default;
+
+    void SetShader(Shader &shader) override;
 
 private:
-    glm::vec3 position_;
+    glm::vec3 position_, direction_;
     float cut_off_, outer_cut_off_;
 
 };

@@ -7,7 +7,7 @@
 
 #include "light.h"
 
-class PointLight : Light {
+class PointLight : public Light {
 public:
     PointLight(glm::vec3 color, glm::vec3 position);
 

@@ -7,7 +7,7 @@
 
 #include "light.h"
 
-class DirectionalLight : Light {
+class DirectionalLight : public Light {
 public:
     DirectionalLight(glm::vec3 color, glm::vec3 direction);
 

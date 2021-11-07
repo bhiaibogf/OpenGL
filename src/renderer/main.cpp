@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "light/directional_light.h"
 #include "light/point_light.h"
+#include "light/spot_light.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -83,7 +84,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader ourShader("model.vs", "pbr.fs");
+    Shader pbr_shader("model.vs", "pbr.fs");
 
     // load models
     // -----------
@@ -120,46 +121,39 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
-        ourShader.use();
+        pbr_shader.use();
 
         // directional light
-        DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f)*10.f, glm::vec3(-0.2f, -1.0f, -0.3f));
-        directional_light.SetShader(ourShader);
+        DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(-0.2f, -1.0f, -0.3f));
+        directional_light.SetShader(pbr_shader);
 
         // point light 1
-        PointLight point_light(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[0] );
-        point_light.SetShader(ourShader, 0);
+        PointLight point_light(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[0]);
+        point_light.SetShader(pbr_shader, 0);
 
         // point light 2
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[1] );
-        point_light.SetShader(ourShader, 1);
+        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[1]);
+        point_light.SetShader(pbr_shader, 1);
 
         // point light 3
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[2] );
-        point_light.SetShader(ourShader, 2);
+        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[2]);
+        point_light.SetShader(pbr_shader, 2);
 
         // point light 4
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[3] );
-        point_light.SetShader(ourShader, 3);
+        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[3]);
+        point_light.SetShader(pbr_shader, 3);
 
         // spotLight
-        // ourShader.setVec3("spotLight.position", camera.Position);
-        // ourShader.setVec3("spotLight.direction", camera.Front);
-        // ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        // ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        // ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        // ourShader.setFloat("spotLight.constant", 1.0f);
-        // ourShader.setFloat("spotLight.linear", 0.09);
-        // ourShader.setFloat("spotLight.quadratic", 0.032);
-        // ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        // ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        SpotLight spot_light(glm::vec3(0.8f, 0.8f, 0.8f) * 100.f, camera.Position, camera.Front,
+                             glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+        spot_light.SetShader(pbr_shader);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
                                                 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
+        pbr_shader.setMat4("projection", projection);
+        pbr_shader.setMat4("view", view);
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
@@ -176,8 +170,8 @@ int main() {
         auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
 
         model = y_rotate * x_rotate * y_translate * x_translate * model;
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        pbr_shader.setMat4("model", model);
+        ourModel.Draw(pbr_shader);
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
