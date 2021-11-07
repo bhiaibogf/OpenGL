@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <learnopengl/filesystem.h>
-#include <learnopengl/shader_m.h>
+#include <learnopengl/shader.h>
 #include <learnopengl/model.h>
 
 #include <iostream>
@@ -30,13 +30,13 @@ float yaw = 0.f, pitch = 0.f;
 float x_off = 0.f, y_off = 0.f;
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int kScrWidth = 800;
+const unsigned int kScrHeight = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = kScrWidth / 2.0f;
+float lastY = kScrHeight / 2.0f;
 bool firstMouse = true;
 
 // timing
@@ -83,7 +83,7 @@ GLFWwindow *Init() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "sketchfab", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(kScrWidth, kScrHeight, "sketchfab", nullptr, nullptr);
     if (!window) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -130,14 +130,6 @@ int main() {
     string path = "asset/nb574/nb574.obj";
     Model my_model(FileSystem::getPath(path));
 
-    // positions of the point lights
-    glm::vec3 pointLightPositions[] = {
-            glm::vec3(0.7f, 0.2f, 2.0f),
-            glm::vec3(2.3f, -3.3f, -4.0f),
-            glm::vec3(-4.0f, 2.0f, -12.0f),
-            glm::vec3(0.0f, 0.0f, -3.0f)
-    };
-
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -145,6 +137,27 @@ int main() {
     DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(-0.2f, -1.0f, -0.3f));
     directional_light.SetDepthShader(depth_shader);
     directional_light.SetShader(pbr_shader);
+
+    // point light 1
+    PointLight point_light_0(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.7f, 0.2f, 2.0f));
+    point_light_0.SetShader(pbr_shader, 0);
+
+    // point light 2
+    PointLight point_light_1 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(2.3f, -3.3f, -4.0f));
+    point_light_1.SetShader(pbr_shader, 1);
+
+    // point light 3
+    PointLight point_light_2 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(-4.0f, 2.0f, -12.0f));
+    point_light_2.SetShader(pbr_shader, 2);
+
+    // point light 4
+    PointLight point_light_3 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.0f, 0.0f, -3.0f));
+    point_light_3.SetShader(pbr_shader, 3);
+
+    // spotLight
+    SpotLight spot_light(glm::vec3(0.8f, 0.8f, 0.8f) * 100.f, camera.Position, camera.Front,
+                         glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    spot_light.SetShader(pbr_shader);
 
     // render loop
     // -----------
@@ -159,34 +172,11 @@ int main() {
         // -----
         processInput(window);
 
-        // point light 1
-        PointLight point_light(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[0]);
-        point_light.SetShader(pbr_shader, 0);
-
-        // point light 2
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[1]);
-        point_light.SetShader(pbr_shader, 1);
-
-        // point light 3
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[2]);
-        point_light.SetShader(pbr_shader, 2);
-
-        // point light 4
-        point_light = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[3]);
-        point_light.SetShader(pbr_shader, 3);
-
-        // spotLight
-        SpotLight spot_light(glm::vec3(0.8f, 0.8f, 0.8f) * 100.f, camera.Position, camera.Front,
-                             glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-        spot_light.SetShader(pbr_shader);
-
         // model transform
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight,
+                                                0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        pbr_shader.setMat4("projection", projection);
-        pbr_shader.setMat4("view", view);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
@@ -204,29 +194,33 @@ int main() {
         model = y_rotate * x_rotate * y_translate * x_translate * model;
 
         glViewport(0, 0, 1024, 1024);
-        glBindFramebuffer(GL_FRAMEBUFFER, directional_light.GetFBO());
-        glClear(GL_DEPTH_BUFFER_BIT);
-        depth_shader.setMat3("model", model);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glClear(GL_DEPTH_BUFFER_BIT);
         depth_shader.use();
+        depth_shader.setMat4("model", model);
         my_model.Draw(depth_shader);
 
         // reset viewport
         // render
         // ------
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pbr_shader.setMat4("model", model);
-        // ourModel.Draw(pbr_shader);
+        // pbr_shader.use();
+        // pbr_shader.setMat4("projection", projection);
+        // pbr_shader.setMat4("view", view);
+        // pbr_shader.setMat4("model", model);
+        // my_model.Draw(pbr_shader);
 
-        debug_shader.use();
-        debug_shader.setFloat("near_plane", 1.0);
-        debug_shader.setFloat("far_plane", 7.5);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
-        renderQuad();
+        // debug_shader.use();
+        // debug_shader.setFloat("near_plane", 1.0);
+        // debug_shader.setFloat("far_plane", 7.5);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
+        // renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

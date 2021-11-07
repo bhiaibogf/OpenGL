@@ -8,6 +8,8 @@ SpotLight::SpotLight(glm::vec3 color, glm::vec3 position, glm::vec3 direction, f
         : Light(color), position_(position), direction_(direction), cut_off_(cut_off), outer_cut_off_(outer_cut_off) {}
 
 void SpotLight::SetShader(Shader &shader) {
+    shader.use();
+
     shader.setVec3("spot_light.color", color_);
     shader.setVec3("spot_light.position", position_);
     shader.setVec3("spot_light.direction", direction_);

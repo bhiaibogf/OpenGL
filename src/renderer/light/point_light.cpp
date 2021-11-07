@@ -15,11 +15,14 @@ PointLight::~PointLight() {
 }
 
 void PointLight::SetShader(Shader &shader) {
+    shader.use();
+
     shader.setVec3("point_light[" + std::to_string(idx_) + "].color", color_);
     shader.setVec3("point_light[" + std::to_string(idx_) + "].position", position_);
 }
 
 void PointLight::SetShader(Shader &shader, int idx) {
+    shader.use();
     shader.setVec3("point_light[" + std::to_string(idx) + "].color", color_);
     shader.setVec3("point_light[" + std::to_string(idx) + "].position", position_);
 }
