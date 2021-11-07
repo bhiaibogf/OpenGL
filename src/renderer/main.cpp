@@ -43,7 +43,37 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-int main() {
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+
+void renderQuad() {
+    if (quadVAO == 0) {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+GLFWwindow *Init() {
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -53,12 +83,13 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL) {
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "sketchfab", nullptr, nullptr);
+    if (!window) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_click_callback);
@@ -72,11 +103,17 @@ int main() {
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+        return nullptr;
     }
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     // stbi_set_flip_vertically_on_load(true);
+
+    return window;
+}
+
+int main() {
+    GLFWwindow *window = Init();
 
     // configure global opengl state
     // -----------------------------
@@ -85,11 +122,13 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader pbr_shader("model.vs", "pbr.fs");
+    Shader depth_shader("shadow_mapping_depth.vs", "shadow_mapping_depth.fs");
+    Shader debug_shader("debug_quad.vs", "debug_quad_depth.fs");
 
     // load models
     // -----------
     string path = "asset/nb574/nb574.obj";
-    Model ourModel(FileSystem::getPath(path));
+    Model my_model(FileSystem::getPath(path));
 
     // positions of the point lights
     glm::vec3 pointLightPositions[] = {
@@ -101,6 +140,11 @@ int main() {
 
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // directional light
+    DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(-0.2f, -1.0f, -0.3f));
+    directional_light.SetDepthShader(depth_shader);
+    directional_light.SetShader(pbr_shader);
 
     // render loop
     // -----------
@@ -114,18 +158,6 @@ int main() {
         // input
         // -----
         processInput(window);
-
-        // render
-        // ------
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // don't forget to enable shader before setting uniforms
-        pbr_shader.use();
-
-        // directional light
-        DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(-0.2f, -1.0f, -0.3f));
-        directional_light.SetShader(pbr_shader);
 
         // point light 1
         PointLight point_light(glm::vec3(0.8f, 0.8f, 0.8f), pointLightPositions[0]);
@@ -148,6 +180,7 @@ int main() {
                              glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
         spot_light.SetShader(pbr_shader);
 
+        // model transform
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
                                                 100.0f);
@@ -155,7 +188,6 @@ int main() {
         pbr_shader.setMat4("projection", projection);
         pbr_shader.setMat4("view", view);
 
-        // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -170,9 +202,31 @@ int main() {
         auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
 
         model = y_rotate * x_rotate * y_translate * x_translate * model;
-        pbr_shader.setMat4("model", model);
-        ourModel.Draw(pbr_shader);
 
+        glViewport(0, 0, 1024, 1024);
+        glBindFramebuffer(GL_FRAMEBUFFER, directional_light.GetFBO());
+        glClear(GL_DEPTH_BUFFER_BIT);
+        depth_shader.setMat3("model", model);
+        depth_shader.use();
+        my_model.Draw(depth_shader);
+
+        // reset viewport
+        // render
+        // ------
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        pbr_shader.setMat4("model", model);
+        // ourModel.Draw(pbr_shader);
+
+        debug_shader.use();
+        debug_shader.setFloat("near_plane", 1.0);
+        debug_shader.setFloat("far_plane", 7.5);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
+        renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

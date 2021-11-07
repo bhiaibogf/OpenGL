@@ -21,6 +21,8 @@ public:
         shader.setVec3("color", color_);
     }
 
+    virtual void SetDepthShader(Shader &shader) {}
+
 protected:
     glm::vec3 color_;
 
