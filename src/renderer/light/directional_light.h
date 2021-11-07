@@ -21,6 +21,9 @@ public:
 
     unsigned int GetDepthMap() const { return depth_map_; }
 
+    float GetZNear() const { return near_plane_; }
+
+    float GetZFar() const { return far_plane_; }
 
 private:
     static const unsigned int kShadowWidth = 1024, kShadowHeight = 1024;

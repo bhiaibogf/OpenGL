@@ -31,7 +31,7 @@ struct SpotLight {
     float cut_off, outer_cut_off;
 };
 
-uniform DirectionalLight direction_light;
+uniform DirectionalLight directional_light;
 uniform PointLight point_light[4];
 uniform SpotLight spot_light;
 
@@ -66,7 +66,7 @@ float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace){
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(direction_light.shadow_map, projCoords.xy).r;
+    float closestDepth = texture(directional_light.shadow_map, projCoords.xy).r;
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // calculate bias (based on depth map resolution and slope)
@@ -78,12 +78,12 @@ float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace){
 
     // PCF
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(direction_light.shadow_map, 0);
+    vec2 texelSize = 1.0 / textureSize(directional_light.shadow_map, 0);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(direction_light.shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
+            float pcfDepth = texture(directional_light.shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
         }
     }
@@ -193,8 +193,8 @@ void main() {
     }
 
     // calculate direction light radiance
-    vec3 L = -normalize(direction_light.direction);
-    vec3 radiance = direction_light.color;
+    vec3 L = -normalize(directional_light.direction);
+    vec3 radiance = directional_light.color;
 
     Lo += CalVis(N, L, FragPosLightSpace) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
@@ -215,7 +215,7 @@ void main() {
     //    float ao        = texture(aoMap, TexCoords).r;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
-    vec3 color = ambient + Lo;
+    vec3 color = Lo;
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));

@@ -134,28 +134,28 @@ int main() {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // directional light
-    DirectionalLight directional_light(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(-0.2f, -1.0f, -0.3f));
+    DirectionalLight directional_light(glm::vec3(1.f), glm::vec3(-0.2f, -1.0f, -0.3f));
     directional_light.SetDepthShader(depth_shader);
     directional_light.SetShader(pbr_shader);
 
     // point light 1
-    PointLight point_light_0(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.7f, 0.2f, 2.0f));
+    PointLight point_light_0(glm::vec3(0.f), glm::vec3(0.7f, 0.2f, 2.0f));
     point_light_0.SetShader(pbr_shader, 0);
 
     // point light 2
-    PointLight point_light_1 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(2.3f, -3.3f, -4.0f));
+    PointLight point_light_1 = PointLight(glm::vec3(0.f), glm::vec3(2.3f, -3.3f, -4.0f));
     point_light_1.SetShader(pbr_shader, 1);
 
     // point light 3
-    PointLight point_light_2 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(-4.0f, 2.0f, -12.0f));
+    PointLight point_light_2 = PointLight(glm::vec3(0.f), glm::vec3(-4.0f, 2.0f, -12.0f));
     point_light_2.SetShader(pbr_shader, 2);
 
     // point light 4
-    PointLight point_light_3 = PointLight(glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.0f, 0.0f, -3.0f));
+    PointLight point_light_3 = PointLight(glm::vec3(0.f), glm::vec3(0.0f, 0.0f, -3.0f));
     point_light_3.SetShader(pbr_shader, 3);
 
     // spotLight
-    SpotLight spot_light(glm::vec3(0.8f, 0.8f, 0.8f) * 100.f, camera.Position, camera.Front,
+    SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     spot_light.SetShader(pbr_shader);
 
@@ -194,9 +194,8 @@ int main() {
         model = y_rotate * x_rotate * y_translate * x_translate * model;
 
         glViewport(0, 0, 1024, 1024);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // glClear(GL_DEPTH_BUFFER_BIT);
+        glBindFramebuffer(GL_FRAMEBUFFER, directional_light.GetFBO());
+        glClear(GL_DEPTH_BUFFER_BIT);
         depth_shader.use();
         depth_shader.setMat4("model", model);
         my_model.Draw(depth_shader);
@@ -204,20 +203,20 @@ int main() {
         // reset viewport
         // render
         // ------
-        // glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        // glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, kScrWidth, kScrHeight);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // pbr_shader.use();
-        // pbr_shader.setMat4("projection", projection);
-        // pbr_shader.setMat4("view", view);
-        // pbr_shader.setMat4("model", model);
-        // my_model.Draw(pbr_shader);
+        pbr_shader.use();
+        pbr_shader.setMat4("projection", projection);
+        pbr_shader.setMat4("view", view);
+        pbr_shader.setMat4("model", model);
+        my_model.Draw(pbr_shader);
 
         // debug_shader.use();
-        // debug_shader.setFloat("near_plane", 1.0);
-        // debug_shader.setFloat("far_plane", 7.5);
+        // debug_shader.setFloat("near_plane", directional_light.GetZNear());
+        // debug_shader.setFloat("far_plane", directional_light.GetZFar());
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
         // renderQuad();
