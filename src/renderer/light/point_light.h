@@ -17,6 +17,8 @@ public:
 
     void SetShader(Shader &shader, int idx);
 
+    void SetDepthShader(Shader &shader) override;
+
 private:
     static int idx_;
     glm::vec3 position_;

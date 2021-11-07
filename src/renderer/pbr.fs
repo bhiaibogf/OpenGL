@@ -1,8 +1,14 @@
 #version 330 core
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 Normal;
-in vec4 FragPosLightSpace;
+in VsOut{
+    vec3 WorldPos;
+    vec4 FragPosDirLightSpace;
+    vec4 FragPosPointLightSpace[4];
+    vec4 FragPosSpotLightSpace;
+
+    vec3 Normal;
+
+    vec2 TexCoords;
+} fs_in;
 
 out vec4 FragColor;
 
@@ -23,12 +29,14 @@ struct DirectionalLight {
 struct PointLight {
     vec3 color;
     vec3 position;
+    sampler2D shadow_map;
 };
 
 struct SpotLight {
     vec3 color;
     vec3 position, direction;
     float cut_off, outer_cut_off;
+    sampler2D shadow_map;
 };
 
 uniform DirectionalLight directional_light;
@@ -44,14 +52,14 @@ const float PI = 3.14159265359;
 // mapping the usual way for performance anways; I do plan make a note of this 
 // technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, fs_in.TexCoords).xyz * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(WorldPos);
-    vec3 Q2  = dFdy(WorldPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
+    vec3 Q1  = dFdx(fs_in.WorldPos);
+    vec3 Q2  = dFdy(fs_in.WorldPos);
+    vec2 st1 = dFdx(fs_in.TexCoords);
+    vec2 st2 = dFdy(fs_in.TexCoords);
 
-    vec3 N   = normalize(Normal);
+    vec3 N   = normalize(fs_in.Normal);
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
@@ -60,13 +68,13 @@ vec3 getNormalFromMap() {
 }
 
 
-float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace){
+float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace, sampler2D shadow_map){
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(directional_light.shadow_map, projCoords.xy).r;
+    float closestDepth = texture(shadow_map, projCoords.xy).r;
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // calculate bias (based on depth map resolution and slope)
@@ -78,12 +86,12 @@ float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace){
 
     // PCF
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(directional_light.shadow_map, 0);
+    vec2 texelSize = 1.0 / textureSize(shadow_map, 0);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(directional_light.shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
+            float pcfDepth = texture(shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
         }
     }
@@ -163,15 +171,15 @@ vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, v
 }
 
 void main() {
-    vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
-    //    float metallic  = texture(metallicMap, TexCoords).r;
+    vec3 albedo = pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2));
+    //    float metallic  = texture(metallicMap, fs_in.TexCoords).r;
     float metallic = 0.f;
-    //    float roughness = texture(roughnessMap, TexCoords).r;
+    //    float roughness = texture(roughnessMap, fs_in.TexCoords).r;
     float roughness = 0.0f;
 
     //    vec3 N = getNormalFromMap();
-    vec3 N = Normal;
-    vec3 V = normalize(camPos - WorldPos);
+    vec3 N = fs_in.Normal;
+    vec3 V = normalize(camPos - fs_in.WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -183,24 +191,24 @@ void main() {
     for (int i = 0; i < 4; ++i)
     {
         // calculate per-light radiance
-        vec3 L = normalize(point_light[i].position - WorldPos);
+        vec3 L = normalize(point_light[i].position - fs_in.WorldPos);
 
-        float distance = length(point_light[i].position - WorldPos);
+        float distance = length(point_light[i].position - fs_in.WorldPos);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = point_light[i].color * attenuation;
 
-        Lo += CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
+        Lo += CalVis(N, L, fs_in.FragPosPointLightSpace[i], point_light[i].shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
     }
 
     // calculate direction light radiance
     vec3 L = -normalize(directional_light.direction);
     vec3 radiance = directional_light.color;
 
-    Lo += CalVis(N, L, FragPosLightSpace) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
+    Lo += CalVis(N, L, fs_in.FragPosDirLightSpace, directional_light.shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
     // calculate spot light radiance
-    L = normalize(spot_light.position - WorldPos);
-    float distance = length(spot_light.position - WorldPos);
+    L = normalize(spot_light.position - fs_in.WorldPos);
+    float distance = length(spot_light.position - fs_in.WorldPos);
     float attenuation = 1.0 / (distance * distance);
     float theta = dot(L, normalize(-spot_light.direction));
     float epsilon = spot_light.cut_off - spot_light.outer_cut_off;
@@ -212,7 +220,7 @@ void main() {
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
     float ao = 1.f;
-    //    float ao        = texture(aoMap, TexCoords).r;
+    //    float ao        = texture(aoMap, fs_in.TexCoords).r;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 color = Lo;

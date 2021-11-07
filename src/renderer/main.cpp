@@ -135,27 +135,18 @@ int main() {
 
     // directional light
     DirectionalLight directional_light(glm::vec3(1.f), glm::vec3(-0.2f, -1.0f, -0.3f));
-    directional_light.SetDepthShader(depth_shader);
     directional_light.SetShader(pbr_shader);
 
     // point light 1
-    PointLight point_light_0(glm::vec3(0.f), glm::vec3(0.7f, 0.2f, 2.0f));
-    point_light_0.SetShader(pbr_shader, 0);
-
-    // point light 2
-    PointLight point_light_1 = PointLight(glm::vec3(0.f), glm::vec3(2.3f, -3.3f, -4.0f));
-    point_light_1.SetShader(pbr_shader, 1);
-
-    // point light 3
-    PointLight point_light_2 = PointLight(glm::vec3(0.f), glm::vec3(-4.0f, 2.0f, -12.0f));
-    point_light_2.SetShader(pbr_shader, 2);
-
-    // point light 4
-    PointLight point_light_3 = PointLight(glm::vec3(0.f), glm::vec3(0.0f, 0.0f, -3.0f));
-    point_light_3.SetShader(pbr_shader, 3);
+    PointLight point_light[4] = {
+            PointLight(glm::vec3(1.f), glm::vec3(1.7f, 1.2f, 2.0f)),
+            PointLight(glm::vec3(1.f), glm::vec3(2.3f, -3.3f, -4.0f)),
+            PointLight(glm::vec3(1.f), glm::vec3(-4.0f, 2.0f, -12.0f)),
+            PointLight(glm::vec3(1.f), glm::vec3(0.0f, 0.0f, -3.0f))
+    };
 
     // spotLight
-    SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
+    SpotLight spot_light(glm::vec3(2.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     spot_light.SetShader(pbr_shader);
 
@@ -193,12 +184,20 @@ int main() {
 
         model = y_rotate * x_rotate * y_translate * x_translate * model;
 
-        glViewport(0, 0, 1024, 1024);
-        glBindFramebuffer(GL_FRAMEBUFFER, directional_light.GetFBO());
-        glClear(GL_DEPTH_BUFFER_BIT);
         depth_shader.use();
         depth_shader.setMat4("model", model);
+
+        directional_light.SetDepthShader(depth_shader);
         my_model.Draw(depth_shader);
+
+        for (int i = 0; i < 4; i++) {
+            point_light[i].SetDepthShader(depth_shader);
+            my_model.Draw(depth_shader);
+
+            point_light[i].SetShader(pbr_shader, i);
+        }
+
+        spot_light.SetShader(pbr_shader);
 
         // reset viewport
         // render
@@ -215,10 +214,13 @@ int main() {
         my_model.Draw(pbr_shader);
 
         // debug_shader.use();
+        // debug_shader.setFloat("near_plane", point_light[3].GetZNear());
+        // debug_shader.setFloat("far_plane", point_light[3].GetZFar());
         // debug_shader.setFloat("near_plane", directional_light.GetZNear());
         // debug_shader.setFloat("far_plane", directional_light.GetZFar());
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
+        // glBindTexture(GL_TEXTURE_2D, point_light[3].GetDepthMap());
         // renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
