@@ -135,14 +135,14 @@ int main() {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // directional light
-    DirectionalLight directional_light(glm::vec3(0.f), glm::vec3(-0.2f, -1.0f, -0.3f));
+    DirectionalLight directional_light(glm::vec3(1.f), glm::vec3(-0.2f, -1.0f, -0.3f));
 
     // point light 1
     PointLight point_light[4] = {
             PointLight(glm::vec3(1000.f), glm::vec3(20.f, 15.f, 20.f)),
-            PointLight(glm::vec3(0.f), glm::vec3(-23.f, 20.f, -40.f)),
-            PointLight(glm::vec3(0.f), glm::vec3(40.f, 25.f, -12.f)),
-            PointLight(glm::vec3(0.f), glm::vec3(-5.0f, 30.0f, -30.f))
+            PointLight(glm::vec3(1000.f), glm::vec3(-23.f, 20.f, -40.f)),
+            PointLight(glm::vec3(1000.f), glm::vec3(40.f, 25.f, -12.f)),
+            PointLight(glm::vec3(1000.f), glm::vec3(-5.0f, 30.0f, -30.f))
     };
 
     // spotLight

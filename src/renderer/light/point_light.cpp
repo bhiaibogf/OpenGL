@@ -8,6 +8,7 @@ int PointLight::idx_ = -1;
 
 PointLight::PointLight(glm::vec3 color, glm::vec3 position) : Light(color), position_(position) {
     idx_++;
+    near_plane_ += glm::length(position_) - 5.f;
     far_plane_ += glm::length(position_);
 
     glm::mat4 light_projection, light_view;
