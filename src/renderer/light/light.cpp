@@ -39,5 +39,5 @@ void Light::SetDepthShader(Shader &shader) {
     glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo_);
     glClear(GL_DEPTH_BUFFER_BIT);
     shader.use();
-    shader.setMat4("lightSpaceMatrix", light_space_matrix_);
+    shader.setMat4("light_proj_view", light_proj_view_);
 }

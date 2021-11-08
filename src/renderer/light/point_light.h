@@ -17,8 +17,6 @@ public:
 
     void SetShader(Shader &shader, int idx);
 
-    void SetDepthShader(Shader &shader) override;
-
     void Draw(Shader &shader);
 
 private:

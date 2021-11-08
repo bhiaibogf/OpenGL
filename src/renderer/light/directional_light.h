@@ -15,8 +15,6 @@ public:
 
     void SetShader(Shader &shader) override;
 
-    void SetDepthShader(Shader &shader) override;
-
 private:
     glm::vec3 direction_;
 

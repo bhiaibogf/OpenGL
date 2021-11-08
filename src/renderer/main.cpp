@@ -122,8 +122,8 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader pbr_shader("shader/model.vs", "shader/pbr.fs");
-    Shader depth_shader("shader/shadow_mapping_depth.vs", "shader/shadow_mapping_depth.fs");
-    Shader debug_shader("shader/debug_quad.vs", "shader/debug_quad_depth.fs");
+    Shader depth_shader("shader/depth.vs", "shader/depth.fs");
+    Shader debug_shader("shader/quad.vs", "shader/quad_depth.fs");
     Shader cube_shader = Shader("shader/cube.vs", "shader/cube.fs");
 
     // load models
@@ -222,13 +222,17 @@ int main() {
         }
 
         // debug_shader.use();
-        // debug_shader.setFloat("near_plane", point_light[0].GetZNear());
-        // debug_shader.setFloat("far_plane", point_light[0].GetZFar());
         // debug_shader.setFloat("near_plane", directional_light.GetZNear());
         // debug_shader.setFloat("far_plane", directional_light.GetZFar());
         // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, point_light[0].GetDepthMap());
         // glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
+        // renderQuad();
+
+        // debug_shader.use();
+        // debug_shader.setFloat("near_plane", point_light[0].GetZNear());
+        // debug_shader.setFloat("far_plane", point_light[0].GetZFar());
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, point_light[0].GetDepthMap());
         // renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
