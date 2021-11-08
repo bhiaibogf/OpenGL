@@ -15,6 +15,7 @@
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
+#include "depth_shower.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -42,36 +43,6 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-
-void renderQuad() {
-    if (quadVAO == 0) {
-        float quadVertices[] = {
-                // positions        // texture Coords
-                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        };
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
-    }
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
 
 GLFWwindow *Init() {
     // glfw: initialize and configure
@@ -123,8 +94,7 @@ int main() {
     // -------------------------
     Shader pbr_shader("shader/model.vs", "shader/pbr.fs");
     Shader depth_shader("shader/depth.vs", "shader/depth.fs");
-    Shader debug_shader("shader/quad.vs", "shader/quad_depth.fs");
-    Shader cube_shader = Shader("shader/cube.vs", "shader/cube.fs");
+    Shader cube_shader("shader/cube.vs", "shader/cube.fs");
 
     // load models
     // -----------
@@ -149,6 +119,7 @@ int main() {
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
 
+    DepthShower depth_shower;
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
@@ -222,19 +193,7 @@ int main() {
             point_light[i].Draw(cube_shader);
         }
 
-        // debug_shader.use();
-        // debug_shader.setFloat("near_plane", directional_light.GetZNear());
-        // debug_shader.setFloat("far_plane", directional_light.GetZFar());
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, directional_light.GetDepthMap());
-        // renderQuad();
-
-        // debug_shader.use();
-        // debug_shader.setFloat("near_plane", point_light[0].GetZNear());
-        // debug_shader.setFloat("far_plane", point_light[0].GetZFar());
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, point_light[0].GetDepthMap());
-        // renderQuad();
+        // depth_shower.Draw(directional_light);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

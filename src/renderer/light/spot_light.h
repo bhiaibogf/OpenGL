@@ -5,9 +5,9 @@
 #ifndef SKETCHFAB_SPOT_LIGHT_H
 #define SKETCHFAB_SPOT_LIGHT_H
 
-#include "light.h"
+#include "point_light.h"
 
-class SpotLight : public Light {
+class SpotLight : public PointLight {
 public:
     SpotLight(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float cut_off, float outer_cut_off);
 
@@ -16,7 +16,7 @@ public:
     void SetShader(Shader &shader) override;
 
 private:
-    glm::vec3 position_, direction_;
+    glm::vec3 direction_;
     float cut_off_, outer_cut_off_;
 
 };

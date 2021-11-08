@@ -22,3 +22,7 @@ void DirectionalLight::SetShader(Shader &shader) {
     shader.setInt("directional_light.shadow_map", 10);
     shader.setMat4("directional_light_proj_view", light_proj_view_);
 }
+
+bool DirectionalLight::is_orthographic() {
+    return true;
+}

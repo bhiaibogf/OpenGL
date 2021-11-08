@@ -15,6 +15,8 @@ public:
 
     void SetShader(Shader &shader) override;
 
+    bool is_orthographic() override;
+
 private:
     glm::vec3 direction_;
 

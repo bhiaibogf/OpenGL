@@ -112,3 +112,7 @@ void PointLight::Draw(Shader &shader) {
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
+
+bool PointLight::is_orthographic() {
+    return false;
+}

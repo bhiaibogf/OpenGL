@@ -19,9 +19,13 @@ public:
 
     void Draw(Shader &shader);
 
+    bool is_orthographic() override;
+
+protected:
+    glm::vec3 position_;
+
 private:
     static int idx_;
-    glm::vec3 position_;
 
     static unsigned int cube_vao_;
     static unsigned int cube_vbo_;

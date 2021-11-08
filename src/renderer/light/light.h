@@ -21,6 +21,8 @@ public:
 
     virtual void SetDepthShader(Shader &shader);
 
+    virtual bool is_orthographic() = 0;
+
     unsigned int GetFBO() const { return depth_map_fbo_; }
 
     unsigned int GetDepthMap() const { return depth_map_; }
