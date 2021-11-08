@@ -175,7 +175,7 @@ void main() {
     //    float metallic  = texture(metallic_map, fs_in.TexCoords).r;
     float metallic = 0.f;
     //    float roughness = texture(roughness_map, fs_in.TexCoords).r;
-    float roughness = 0.0f;
+    float roughness = 0.9f;
 
     //    vec3 N = getNormalFromMap();
     vec3 N = fs_in.Normal;
