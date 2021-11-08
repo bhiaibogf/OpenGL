@@ -19,9 +19,14 @@ public:
 
     void SetDepthShader(Shader &shader) override;
 
+    void Draw(Shader &shader);
+
 private:
     static int idx_;
     glm::vec3 position_;
+
+    static unsigned int cube_vao_;
+    static unsigned int cube_vbo_;
 
 };
 

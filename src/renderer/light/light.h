@@ -34,7 +34,7 @@ protected:
 
     glm::vec3 color_;
 
-    float near_plane_ = 0.1f, far_plane_ = 10.f;
+    float near_plane_ = 0.1f, far_plane_ = 50.f;
     glm::mat4 light_space_matrix_;
 
     unsigned int depth_map_fbo_;
