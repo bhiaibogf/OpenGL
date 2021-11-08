@@ -14,21 +14,21 @@ out VsOut{
     vec2 TexCoords;
 } vs_out;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
-uniform mat4 dirLightSpaceMatrix;
-uniform mat4 pointLightSpaceMatrix[4];
-uniform mat4 spotLightSpaceMatrix;
+uniform mat4 directional_light_proj_view;
+uniform mat4 point_light_proj_view[4];
+uniform mat4 spot_light_proj_view;
 
 void main() {
     vs_out.WorldPos = vec3(model * vec4(aPos, 1.0));
-    vs_out.FragPosDirLightSpace = dirLightSpaceMatrix * vec4(vs_out.WorldPos, 1.0);
+    vs_out.FragPosDirLightSpace = directional_light_proj_view * vec4(vs_out.WorldPos, 1.0);
     for (int i=0;i<4;i++){
-        vs_out.FragPosPointLightSpace[i] = pointLightSpaceMatrix[i] * vec4(vs_out.WorldPos, 1.0);
+        vs_out.FragPosPointLightSpace[i] = point_light_proj_view[i] * vec4(vs_out.WorldPos, 1.0);
     }
-    vs_out.FragPosSpotLightSpace = spotLightSpaceMatrix * vec4(vs_out.WorldPos, 1.0);
+    vs_out.FragPosSpotLightSpace = spot_light_proj_view * vec4(vs_out.WorldPos, 1.0);
 
     vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
 

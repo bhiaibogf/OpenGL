@@ -20,5 +20,5 @@ void DirectionalLight::SetShader(Shader &shader) {
     glActiveTexture(GL_TEXTURE10);
     glBindTexture(GL_TEXTURE_2D, depth_map_);
     shader.setInt("directional_light.shadow_map", 10);
-    shader.setMat4("dirLightSpaceMatrix", light_proj_view_);
+    shader.setMat4("directional_light_proj_view", light_proj_view_);
 }

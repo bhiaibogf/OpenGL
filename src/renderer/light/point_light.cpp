@@ -36,7 +36,7 @@ void PointLight::SetShader(Shader &shader, int idx) {
     glActiveTexture(GL_TEXTURE11 + idx);
     glBindTexture(GL_TEXTURE_2D, depth_map_);
     shader.setInt("point_light[" + std::to_string(idx) + "].shadow_map", 11 + idx);
-    shader.setMat4("pointLightSpaceMatrix[" + std::to_string(idx) + "]", light_proj_view_);
+    shader.setMat4("point_light_proj_view[" + std::to_string(idx) + "]", light_proj_view_);
 }
 
 unsigned int PointLight::cube_vao_ = 0;

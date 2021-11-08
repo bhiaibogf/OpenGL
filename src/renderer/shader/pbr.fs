@@ -1,4 +1,6 @@
 #version 330 core
+out vec4 FragColor;
+
 in VsOut{
     vec3 WorldPos;
     vec4 FragPosDirLightSpace;
@@ -10,14 +12,12 @@ in VsOut{
     vec2 TexCoords;
 } fs_in;
 
-out vec4 FragColor;
-
 // material parameters
-uniform sampler2D albedoMap;
-uniform sampler2D normalMap;
-uniform sampler2D metallicMap;
-uniform sampler2D roughnessMap;
-uniform sampler2D aoMap;
+uniform sampler2D albedo_map;
+uniform sampler2D normal_map;
+uniform sampler2D metallic_map;
+uniform sampler2D roughness_map;
+uniform sampler2D ao_map;
 
 // lights
 struct DirectionalLight {
@@ -43,7 +43,7 @@ uniform DirectionalLight directional_light;
 uniform PointLight point_light[4];
 uniform SpotLight spot_light;
 
-uniform vec3 camPos;
+uniform vec3 camera_pos;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ const float PI = 3.14159265359;
 // mapping the usual way for performance anways; I do plan make a note of this 
 // technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(normalMap, fs_in.TexCoords).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
 
     vec3 Q1  = dFdx(fs_in.WorldPos);
     vec3 Q2  = dFdy(fs_in.WorldPos);
@@ -171,15 +171,15 @@ vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, v
 }
 
 void main() {
-    vec3 albedo = pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2));
-    //    float metallic  = texture(metallicMap, fs_in.TexCoords).r;
+    vec3 albedo = pow(texture(albedo_map, fs_in.TexCoords).rgb, vec3(2.2));
+    //    float metallic  = texture(metallic_map, fs_in.TexCoords).r;
     float metallic = 0.f;
-    //    float roughness = texture(roughnessMap, fs_in.TexCoords).r;
+    //    float roughness = texture(roughness_map, fs_in.TexCoords).r;
     float roughness = 0.0f;
 
     //    vec3 N = getNormalFromMap();
     vec3 N = fs_in.Normal;
-    vec3 V = normalize(camPos - fs_in.WorldPos);
+    vec3 V = normalize(camera_pos - fs_in.WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -220,10 +220,10 @@ void main() {
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
     float ao = 1.f;
-    //    float ao        = texture(aoMap, fs_in.TexCoords).r;
+    //    float ao        = texture(ao_map, fs_in.TexCoords).r;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
-    vec3 color = Lo;
+    vec3 color = ambient + Lo;
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));

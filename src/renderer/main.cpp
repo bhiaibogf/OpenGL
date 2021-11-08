@@ -212,6 +212,7 @@ int main() {
         pbr_shader.setMat4("projection", projection);
         pbr_shader.setMat4("view", view);
         pbr_shader.setMat4("model", model);
+        pbr_shader.setVec3("camera_pos", camera.Position);
         my_model.Draw(pbr_shader);
 
         cube_shader.use();
