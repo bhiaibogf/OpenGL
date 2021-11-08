@@ -5,6 +5,8 @@
 #include "directional_light.h"
 
 DirectionalLight::DirectionalLight(glm::vec3 color, glm::vec3 direction) : Light(color), direction_(direction) {
+    far_plane_ += 5.f;
+
     glm::mat4 light_projection, light_view;
     light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane_, far_plane_);
     light_view = glm::lookAt(-direction_ * 5.f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
