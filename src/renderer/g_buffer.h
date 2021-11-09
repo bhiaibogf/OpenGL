@@ -9,22 +9,32 @@
 
 class GBuffer {
 public:
-    GBuffer(unsigned int width, unsigned int height) : width_(width), height_(height) {
-        Init();
-    }
+    GBuffer(unsigned int width, unsigned int height);
 
     ~GBuffer() = default;
 
-    void Draw();
+    void Bind();
 
     Shader &get_shader() { return shader; }
 
-    unsigned int get_fbo() {
+    unsigned int get_fbo() const {
         return fbo_;
     }
 
     unsigned int get_g_position() const {
         return g_position_;
+    }
+
+    unsigned int get_g_pos_dir_light() const {
+        return g_pos_dir_light_;
+    }
+
+    const unsigned int *get_g_pos_point_light() const {
+        return g_pos_point_light_;
+    }
+
+    unsigned int get_g_pos_spot_light() const {
+        return g_pos_spot_light_;
     }
 
     unsigned int get_g_normal() const {
@@ -41,13 +51,19 @@ public:
 
 private:
     unsigned int width_, height_;
+
     unsigned int fbo_;
-    unsigned int g_position_, g_normal_, g_albedo_roughness_;
+
+    unsigned int g_position_,
+            g_pos_dir_light_, g_pos_point_light_[4], g_pos_spot_light_,
+            g_normal_,
+            g_albedo_roughness_;
+
     unsigned int depth_rbo_;
 
     Shader shader = Shader("shader/g_buffer.vs", "shader/g_buffer.fs");
 
-    void Init();
+    void AddBuffer(unsigned int &map) const;
 
 };
 

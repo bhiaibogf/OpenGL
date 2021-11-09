@@ -177,20 +177,21 @@ int main() {
 
         spot_light.SetShader(pbr_shader);
 
-        g_buffer.Draw();
-        g_buffer.get_shader().setMat4("model", model);
-        g_buffer.get_shader().setMat4("view", view);
-        g_buffer.get_shader().setMat4("projection", projection);
-        my_model.Draw(g_buffer.get_shader());
-
         // reset viewport
         // render
         // ------
         glViewport(0, 0, kScrWidth, kScrHeight);
 
-        // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
-        // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        // glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        g_buffer.Bind();
+        g_buffer.get_shader().setMat4("model", model);
+        g_buffer.get_shader().setMat4("view", view);
+        g_buffer.get_shader().setMat4("projection", projection);
+        my_model.Draw(g_buffer.get_shader());
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
