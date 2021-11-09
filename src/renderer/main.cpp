@@ -15,7 +15,9 @@
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
-#include "depth_shower.h"
+#include "debuger/depth_shower.h"
+#include "g_buffer.h"
+#include "debuger/map_shower.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -120,6 +122,10 @@ int main() {
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
 
     DepthShower depth_shower;
+    MapShower map_shower;
+
+    GBuffer g_buffer(kScrWidth, kScrHeight);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
@@ -171,29 +177,43 @@ int main() {
 
         spot_light.SetShader(pbr_shader);
 
+        g_buffer.Draw();
+        g_buffer.get_shader().setMat4("model", model);
+        g_buffer.get_shader().setMat4("view", view);
+        g_buffer.get_shader().setMat4("projection", projection);
+        my_model.Draw(g_buffer.get_shader());
+
         // reset viewport
         // render
         // ------
         glViewport(0, 0, kScrWidth, kScrHeight);
+
+        // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
+        // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        // glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pbr_shader.use();
-        pbr_shader.setMat4("projection", projection);
-        pbr_shader.setMat4("view", view);
-        pbr_shader.setMat4("model", model);
-        pbr_shader.setVec3("camera_pos", camera.Position);
-        my_model.Draw(pbr_shader);
+        // pbr_shader.use();
+        // pbr_shader.setMat4("model", model);
+        // pbr_shader.setMat4("view", view);
+        // pbr_shader.setMat4("projection", projection);
+        // pbr_shader.setVec3("camera_pos", camera.Position);
+        // my_model.Draw(pbr_shader);
 
-        cube_shader.use();
-        cube_shader.setMat4("view", view);
-        cube_shader.setMat4("projection", projection);
-        for (int i = 0; i < 4; i++) {
-            point_light[i].Draw(cube_shader);
-        }
+        // cube_shader.use();
+        // cube_shader.setMat4("view", view);
+        // cube_shader.setMat4("projection", projection);
+        // for (int i = 0; i < 4; i++) {
+        //     point_light[i].Draw(cube_shader);
+        // }
 
-        // depth_shower.Draw(directional_light);
+        // depth_shower.Show(directional_light);
+        // depth_shower.Show(point_light[0]);
+
+        map_shower.Show(g_buffer.get_g_normal());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

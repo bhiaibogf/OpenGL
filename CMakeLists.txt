@@ -30,6 +30,7 @@ target_link_libraries(LearnOpenGL ${LIBS} GLAD STB_IMAGE)
 
 file(GLOB SRC
         "src/renderer/light/*.cpp"
+        "src/renderer/debuger/*.cpp"
         "src/renderer/*.cpp"
         )
 add_executable(sketchfab ${SRC})

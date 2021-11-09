@@ -5,25 +5,20 @@
 #ifndef SKETCHFAB_DEPTH_SHOWER_H
 #define SKETCHFAB_DEPTH_SHOWER_H
 
-#include <learnopengl/shader.h>
-#include "light/light.h"
+#include "shower.h"
+#include "../light/light.h"
 
-class DepthShower {
+class DepthShower : public Shower {
 public:
-    DepthShower();
+    DepthShower() = default;
 
     ~DepthShower() = default;
 
-    void Draw(Light &light);
+    void Show(Light &light);
 
 private:
-    unsigned int quad_vao_ = 0;
-    unsigned int quad_vbo_;
-
     Shader orthographic_shader = Shader("shader/quad.vs", "shader/orthographic_depth.fs");
     Shader perspective_shader = Shader("shader/quad.vs", "shader/perspective_depth.fs");
-
-    void RenderQuad();
 
 };
 
