@@ -14,25 +14,25 @@ GBuffer::GBuffer(unsigned int width, unsigned int height) : width_(width), heigh
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
 
     // position color buffer
-    AddBuffer(g_position_);
+    AddBuffer(g_position_, 0);
 
-    AddBuffer(g_pos_dir_light_);
+    AddBuffer(g_pos_dir_light_, 1);
     for (int i = 0; i < 4; i++) {
-        AddBuffer(g_pos_point_light_[i]);
+        AddBuffer(g_pos_point_light_[i], 2 + i);
     }
-    AddBuffer(g_pos_spot_light_);
+    AddBuffer(g_pos_spot_light_, 6);
 
     // normal color buffer
-    AddBuffer(g_normal_);
+    AddBuffer(g_normal_, 7);
 
     // color + roughness color buffer
-    AddBuffer(g_albedo_roughness_);
+    AddBuffer(g_albedo_roughness_, 8);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     unsigned int attachments[9];
     for (int i = 0; i < 9; i++) {
         attachments[i] = GL_COLOR_ATTACHMENT0 + i;
-    };
+    }
     glDrawBuffers(9, attachments);
 
     // create and attach depth buffer (renderbuffer)
@@ -51,14 +51,18 @@ GBuffer::GBuffer(unsigned int width, unsigned int height) : width_(width), heigh
 void GBuffer::Bind() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    shader.use();
+    shader_.use();
 }
 
-void GBuffer::AddBuffer(unsigned int &map) const {
+void GBuffer::AddBuffer(unsigned int &map, int idx) const {
     glGenTextures(1, &map);
     glBindTexture(GL_TEXTURE_2D, map);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width_, height_, 0, GL_RGBA, GL_FLOAT, NULL);
+    if (idx == 0 || idx == 7) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + idx, GL_TEXTURE_2D, map, 0);
 }

@@ -15,7 +15,7 @@ public:
 
     void Bind();
 
-    Shader &get_shader() { return shader; }
+    Shader &get_shader() { return shader_; }
 
     unsigned int get_fbo() const {
         return fbo_;
@@ -61,9 +61,9 @@ private:
 
     unsigned int depth_rbo_;
 
-    Shader shader = Shader("shader/g_buffer.vs", "shader/g_buffer.fs");
+    Shader shader_ = Shader("shader/g_buffer.vs", "shader/g_buffer.fs");
 
-    void AddBuffer(unsigned int &map) const;
+    void AddBuffer(unsigned int &map, int idx) const;
 
 };
 
