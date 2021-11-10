@@ -166,13 +166,13 @@ int main() {
         directional_light.SetDepthShader(depth_shader);
         my_model.Draw(depth_shader);
 
-        directional_light.SetShader(pbr_shader);
+        directional_light.SetShader(g_buffer.get_shader());
 
         for (int i = 0; i < 4; i++) {
             point_light[i].SetDepthShader(depth_shader);
             my_model.Draw(depth_shader);
 
-            point_light[i].SetShader(pbr_shader, i);
+            point_light[i].SetShader(g_buffer.get_shader(), i);
         }
 
         spot_light.SetShader(pbr_shader);
@@ -214,7 +214,7 @@ int main() {
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_light[0]);
 
-        map_shower.Show(g_buffer.get_g_normal());
+        map_shower.Show(g_buffer.get_g_pos_dir_light());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

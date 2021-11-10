@@ -20,20 +20,20 @@ GBuffer::GBuffer(unsigned int width, unsigned int height) : width_(width), heigh
     for (int i = 0; i < 4; i++) {
         AddBuffer(g_pos_point_light_[i], 2 + i);
     }
-    AddBuffer(g_pos_spot_light_, 6);
+    // AddBuffer(g_pos_spot_light_, 6);
 
     // normal color buffer
-    AddBuffer(g_normal_, 7);
+    AddBuffer(g_normal_, 6);
 
     // color + roughness color buffer
-    AddBuffer(g_albedo_roughness_, 8);
+    AddBuffer(g_albedo_roughness_, 7);
 
     // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-    unsigned int attachments[9];
-    for (int i = 0; i < 9; i++) {
+    unsigned int attachments[8];
+    for (int i = 0; i < 8; i++) {
         attachments[i] = GL_COLOR_ATTACHMENT0 + i;
     }
-    glDrawBuffers(9, attachments);
+    glDrawBuffers(8, attachments);
 
     // create and attach depth buffer (renderbuffer)
     glGenRenderbuffers(1, &depth_rbo_);
@@ -58,9 +58,9 @@ void GBuffer::AddBuffer(unsigned int &map, int idx) const {
     glGenTextures(1, &map);
     glBindTexture(GL_TEXTURE_2D, map);
     if (idx == 0 || idx == 7) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width_, height_, 0, GL_RGB, GL_FLOAT, nullptr);
     } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width_, height_, 0, GL_RGBA, GL_FLOAT, nullptr);
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
