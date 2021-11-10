@@ -85,6 +85,34 @@ GLFWwindow *Init() {
     return window;
 }
 
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+
+void renderQuad() {
+    if (quadVAO == 0) {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 int main() {
     GLFWwindow *window = Init();
 
@@ -94,7 +122,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader pbr_shader("shader/model.vs", "shader/pbr.fs");
+    Shader pbr_shader("shader/shading.vs", "shader/pbr.fs");
     Shader depth_shader("shader/depth.vs", "shader/depth.fs");
     Shader cube_shader("shader/cube.vs", "shader/cube.fs");
 
@@ -167,14 +195,17 @@ int main() {
         my_model.Draw(depth_shader);
 
         directional_light.SetShader(g_buffer.get_shader());
+        directional_light.SetShader(pbr_shader);
 
         for (int i = 0; i < 4; i++) {
             point_light[i].SetDepthShader(depth_shader);
             my_model.Draw(depth_shader);
 
             point_light[i].SetShader(g_buffer.get_shader(), i);
+            point_light[i].SetShader(pbr_shader, i);
         }
 
+        directional_light.SetShader(pbr_shader);
         spot_light.SetShader(pbr_shader);
 
         // reset viewport
@@ -188,33 +219,32 @@ int main() {
         g_buffer.get_shader().setMat4("projection", projection);
         my_model.Draw(g_buffer.get_shader());
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // pbr_shader.use();
-        // pbr_shader.setMat4("model", model);
-        // pbr_shader.setMat4("view", view);
-        // pbr_shader.setMat4("projection", projection);
-        // pbr_shader.setVec3("camera_pos", camera.Position);
-        // my_model.Draw(pbr_shader);
+        pbr_shader.use();
+        g_buffer.SetGBuffer(pbr_shader);
+        pbr_shader.setVec3("camera_pos", camera.Position);
+        renderQuad();
 
-        // cube_shader.use();
-        // cube_shader.setMat4("view", view);
-        // cube_shader.setMat4("projection", projection);
-        // for (int i = 0; i < 4; i++) {
-        //     point_light[i].Draw(cube_shader);
-        // }
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        cube_shader.use();
+        cube_shader.setMat4("view", view);
+        cube_shader.setMat4("projection", projection);
+        for (int i = 0; i < 4; i++) {
+            point_light[i].Draw(cube_shader);
+        }
 
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_light[0]);
 
-        map_shower.Show(g_buffer.get_g_pos_dir_light());
+        // map_shower.Show(g_buffer.get_g_pos_dir_light());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

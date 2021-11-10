@@ -66,3 +66,34 @@ void GBuffer::AddBuffer(unsigned int &map, int idx) const {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + idx, GL_TEXTURE_2D, map, 0);
 }
+
+void GBuffer::SetGBuffer(Shader &shader) {
+    shader.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_position_);
+    shader.setInt("gPosition", 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, g_pos_dir_light_);
+    shader.setInt("gFragPosDirLightSpace", 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, g_pos_point_light_[0]);
+    shader.setInt("gFragPosPointLightSpace0", 2);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, g_pos_point_light_[1]);
+    shader.setInt("gFragPosPointLightSpace1", 3);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, g_pos_point_light_[2]);
+    shader.setInt("gFragPosPointLightSpace2", 4);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, g_pos_point_light_[3]);
+    shader.setInt("gFragPosPointLightSpace3", 5);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, g_normal_);
+    shader.setInt("gNormal", 6);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_roughness_);
+    shader.setInt("gAlbedoRoughness", 7);
+}

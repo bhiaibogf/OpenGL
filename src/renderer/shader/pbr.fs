@@ -1,23 +1,17 @@
 #version 330 core
 out vec4 FragColor;
 
-in VsOut{
-    vec3 WorldPos;
-    vec4 FragPosDirLightSpace;
-    vec4 FragPosPointLightSpace[4];
-    vec4 FragPosSpotLightSpace;
-
-    vec3 Normal;
-
-    vec2 TexCoords;
-} fs_in;
+in vec2 TexCoords;
 
 // material parameters
-uniform sampler2D albedo_map;
-uniform sampler2D normal_map;
-uniform sampler2D metallic_map;
-uniform sampler2D roughness_map;
-uniform sampler2D ao_map;
+uniform sampler2D gPosition;
+uniform sampler2D gFragPosDirLightSpace;
+uniform sampler2D gFragPosPointLightSpace0;
+uniform sampler2D gFragPosPointLightSpace1;
+uniform sampler2D gFragPosPointLightSpace2;
+uniform sampler2D gFragPosPointLightSpace3;
+uniform sampler2D gNormal;
+uniform sampler2D gAlbedoRoughness;
 
 // lights
 struct DirectionalLight {
@@ -51,21 +45,21 @@ const float PI = 3.14159265359;
 // Don't worry if you don't get what's going on; you generally want to do normal 
 // mapping the usual way for performance anways; I do plan make a note of this 
 // technique somewhere later in the normal mapping tutorial.
-vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(fs_in.WorldPos);
-    vec3 Q2  = dFdy(fs_in.WorldPos);
-    vec2 st1 = dFdx(fs_in.TexCoords);
-    vec2 st2 = dFdy(fs_in.TexCoords);
-
-    vec3 N   = normalize(fs_in.Normal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * tangentNormal);
-}
+//vec3 getNormalFromMap() {
+//    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
+//
+//    vec3 Q1  = dFdx(fs_in.WorldPos);
+//    vec3 Q2  = dFdy(fs_in.WorldPos);
+//    vec2 st1 = dFdx(fs_in.TexCoords);
+//    vec2 st2 = dFdy(fs_in.TexCoords);
+//
+//    vec3 N   = normalize(fs_in.Normal);
+//    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+//    vec3 B  = -normalize(cross(N, T));
+//    mat3 TBN = mat3(T, B, N);
+//
+//    return normalize(TBN * tangentNormal);
+//}
 
 
 float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace, sampler2D shadow_map){
@@ -171,15 +165,16 @@ vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, v
 }
 
 void main() {
-    vec3 albedo = pow(texture(albedo_map, fs_in.TexCoords).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(gAlbedoRoughness, TexCoords).rgb, vec3(2.2));
     //    float metallic  = texture(metallic_map, fs_in.TexCoords).r;
     float metallic = 0.f;
-    //    float roughness = texture(roughness_map, fs_in.TexCoords).r;
+    //    float roughness = texture(gAlbedoRoughness, TexCoords).r;
     float roughness = 0.9f;
 
     //    vec3 N = getNormalFromMap();
-    vec3 N = fs_in.Normal;
-    vec3 V = normalize(camera_pos - fs_in.WorldPos);
+    vec3 N = texture(gNormal, TexCoords).rgb;
+    vec3 WorldPos = texture(gPosition, TexCoords).rgb;
+    vec3 V = normalize(camera_pos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -191,24 +186,35 @@ void main() {
     for (int i = 0; i < 4; ++i)
     {
         // calculate per-light radiance
-        vec3 L = normalize(point_light[i].position - fs_in.WorldPos);
+        vec3 L = normalize(point_light[i].position - WorldPos);
 
-        float distance = length(point_light[i].position - fs_in.WorldPos);
+        float distance = length(point_light[i].position - WorldPos);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = point_light[i].color * attenuation;
 
-        Lo += CalVis(N, L, fs_in.FragPosPointLightSpace[i], point_light[i].shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
+        vec4 fragPosLightSpace;
+        if (i==0){
+            fragPosLightSpace = texture(gFragPosPointLightSpace0, TexCoords);
+        } else if (i==1){
+            fragPosLightSpace = texture(gFragPosPointLightSpace1, TexCoords);
+        } else if (i==2){
+            fragPosLightSpace = texture(gFragPosPointLightSpace2, TexCoords);
+        } else if (i==3){
+            fragPosLightSpace = texture(gFragPosPointLightSpace3, TexCoords);
+        }
+        Lo += CalVis(N, L, fragPosLightSpace, point_light[i].shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
     }
 
     // calculate direction light radiance
     vec3 L = -normalize(directional_light.direction);
     vec3 radiance = directional_light.color;
 
-    Lo += CalVis(N, L, fs_in.FragPosDirLightSpace, directional_light.shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
+    vec4 fragPosLightSpace = texture(gFragPosDirLightSpace, TexCoords);
+    Lo += CalVis(N, L, fragPosLightSpace, directional_light.shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
     // calculate spot light radiance
-    L = normalize(spot_light.position - fs_in.WorldPos);
-    float distance = length(spot_light.position - fs_in.WorldPos);
+    L = normalize(spot_light.position - WorldPos);
+    float distance = length(spot_light.position - WorldPos);
     float attenuation = 1.0 / (distance * distance);
     float theta = dot(L, normalize(-spot_light.direction));
     float epsilon = spot_light.cut_off - spot_light.outer_cut_off;

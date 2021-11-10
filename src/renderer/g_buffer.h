@@ -17,6 +17,8 @@ public:
 
     Shader &get_shader() { return shader_; }
 
+    void SetGBuffer(Shader &shader);
+
     unsigned int get_fbo() const {
         return fbo_;
     }
