@@ -6,6 +6,7 @@
 #define SKETCHFAB_POINT_LIGHT_H
 
 #include "light.h"
+#include "../model/cube.h"
 
 class PointLight : public Light {
 public:
@@ -26,9 +27,7 @@ protected:
 
 private:
     static int idx_;
-
-    static unsigned int cube_vao_;
-    static unsigned int cube_vbo_;
+    Cube cube_;
 
 };
 

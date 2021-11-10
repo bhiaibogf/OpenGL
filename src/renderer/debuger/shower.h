@@ -7,25 +7,19 @@
 
 #include <learnopengl/shader.h>
 
+#include "../model/quad.h"
+
 class Shower {
 public:
-    Shower();
+    Shower() = default;
 
     ~Shower() = default;
 
     virtual void Show(unsigned int map);
 
 private:
-    unsigned int quad_vao_;
-    unsigned int quad_vbo_;
+    Quad quad_;
 
-    constexpr static const float kQuadVertices[] = {
-            // positions        // texture Coords
-            -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-    };
 };
 
 #endif //SKETCHFAB_SHOWER_H
