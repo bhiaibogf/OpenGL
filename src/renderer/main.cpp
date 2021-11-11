@@ -227,6 +227,7 @@ int main() {
         pbr_shader.use();
         g_buffer.SetGBuffer(pbr_shader);
         pbr_shader.setVec3("camera_pos", camera.Position);
+        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
         quad.Draw();
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());

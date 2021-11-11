@@ -38,12 +38,18 @@ uniform PointLight point_light[4];
 uniform SpotLight spot_light;
 
 uniform vec3 camera_pos;
+uniform mat4 uWorldToScreen;
 
 const float PI = 3.14159265359;
 
+vec3 Project(vec4 a) {
+    a = a / a.w;
+    return a.xyz;
+}
+
 float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace, sampler2D shadow_map){
     // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    vec3 projCoords = Project(fragPosLightSpace);
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
@@ -143,16 +149,16 @@ vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, v
     return (kD * albedo / PI + specular)  * NdotL;// note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
 }
 
-void main() {
-    vec3 albedo = pow(texture(gAlbedoRoughness, TexCoords).rgb, vec3(2.2));
-    //    float metallic  = texture(metallic_map, fs_in.TexCoords).r;
+vec3 Shading(vec2 uv){
+    vec3 albedo = pow(texture(gAlbedoRoughness, uv).rgb, vec3(2.2));
+    //    float metallic  = texture(metallic_map, uv).r;
     float metallic = 0.f;
-    //    float roughness = texture(gAlbedoRoughness, TexCoords).r;
+    //    float roughness = texture(gAlbedoRoughness, uv).r;
     float roughness = 0.9f;
 
     //    vec3 N = getNormalFromMap();
-    vec3 N = texture(gNormal, TexCoords).rgb;
-    vec3 WorldPos = texture(gPosition, TexCoords).rgb;
+    vec3 N = texture(gNormal, uv).rgb;
+    vec3 WorldPos = texture(gPosition, uv).rgb;
     vec3 V = normalize(camera_pos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
@@ -173,13 +179,13 @@ void main() {
 
         vec4 fragPosLightSpace;
         if (i==0){
-            fragPosLightSpace = texture(gFragPosPointLightSpace0, TexCoords);
+            fragPosLightSpace = texture(gFragPosPointLightSpace0, uv);
         } else if (i==1){
-            fragPosLightSpace = texture(gFragPosPointLightSpace1, TexCoords);
+            fragPosLightSpace = texture(gFragPosPointLightSpace1, uv);
         } else if (i==2){
-            fragPosLightSpace = texture(gFragPosPointLightSpace2, TexCoords);
+            fragPosLightSpace = texture(gFragPosPointLightSpace2, uv);
         } else if (i==3){
-            fragPosLightSpace = texture(gFragPosPointLightSpace3, TexCoords);
+            fragPosLightSpace = texture(gFragPosPointLightSpace3, uv);
         }
         Lo += CalVis(N, L, fragPosLightSpace, point_light[i].shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
     }
@@ -188,7 +194,7 @@ void main() {
     vec3 L = -normalize(directional_light.direction);
     vec3 radiance = directional_light.color;
 
-    vec4 fragPosLightSpace = texture(gFragPosDirLightSpace, TexCoords);
+    vec4 fragPosLightSpace = texture(gFragPosDirLightSpace, uv);
     Lo += CalVis(N, L, fragPosLightSpace, directional_light.shadow_map) * CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
     // calculate spot light radiance
@@ -202,13 +208,24 @@ void main() {
 
     Lo += CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
-    // ambient lighting (note that the next IBL tutorial will replace 
+    // ambient lighting (note that the next IBL tutorial will replace
     // this ambient lighting with environment lighting).
     //    float ao = 1.f;
-    float ao = texture(gAlbedoRoughness, TexCoords).a;
+    float ao = texture(gAlbedoRoughness, uv).a;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
-    vec3 color = ambient + Lo;
+    return ambient + Lo;
+}
+
+vec2 GetScreenCoordinate(vec3 posWorld) {
+    vec2 uv = Project(uWorldToScreen * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
+    return uv;
+}
+
+void main() {
+    vec3 pos = texture(gPosition, TexCoords).xyz;
+    vec2 uv = GetScreenCoordinate(pos);
+    vec3 color = Shading(uv);
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));
