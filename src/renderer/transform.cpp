@@ -26,6 +26,10 @@ void Transform::Translate(glm::vec3 v) {
     model_ = glm::translate(model_, v);
 }
 
+void Transform::Update() {
+    model_transform_ = model_;
+}
+
 void Transform::Update(glm::mat4 transform) {
     model_transform_ = transform * model_;
 }

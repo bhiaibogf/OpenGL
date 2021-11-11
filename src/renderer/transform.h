@@ -46,6 +46,8 @@ public:
 
     void Translate(glm::vec3 v);
 
+    void Update();
+
     void Update(glm::mat4 transform);
 
 private:

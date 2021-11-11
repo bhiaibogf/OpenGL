@@ -98,6 +98,12 @@ int main() {
     // load models
     string path = "asset/nb574/";
     Model my_model(FileSystem::getPath(path + "nb574.obj"));
+    Quad floor;
+    Transform transform_floor;
+    transform_floor.Scale(glm::vec3(10.f));
+    transform_floor.Rotate(90, glm::vec3(1.0, 0.0, 0.0));
+    transform_floor.Translate(glm::vec3(0, 0, 0.19));
+    transform_floor.Update();
 
     auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
     auto normal_map = TextureFromFile("normals.jpg", FileSystem::getPath(path), false);
@@ -130,6 +136,7 @@ int main() {
 
     Transform transform;
     transform.Rotate(270.f, glm::vec3(1.0, 0.0, 0.0));
+    transform.Update();
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -191,7 +198,13 @@ int main() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, ao_map);
         g_buffer.get_shader().setInt("ao_map", 2);
+
+        g_buffer.get_shader().setInt("id", 0);
         my_model.Draw(g_buffer.get_shader());
+
+        g_buffer.get_shader().setMat4("model", transform_floor.get_model());
+        g_buffer.get_shader().setInt("id", 1);
+        floor.Draw();
 
         // 3. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -221,6 +234,7 @@ int main() {
         // depth_shower.Show(point_light[0]);
 
         // map_shower.Show(g_buffer.get_g_albedo_roughness(), 3);
+        // map_shower.Show(g_buffer.get_g_albedo_roughness());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);

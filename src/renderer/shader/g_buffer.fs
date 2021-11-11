@@ -24,6 +24,8 @@ uniform sampler2D metallic_map;
 uniform sampler2D roughness_map;
 uniform sampler2D ao_map;
 
+uniform int id;
+
 // Easy trick to get tangent-normals to world-space to keep PBR code simplified.
 // Don't worry if you don't get what's going on; you generally want to do normal
 // mapping the usual way for performance anways; I do plan make a note of this
@@ -53,8 +55,15 @@ void main() {
     }
     //    gFragPosSpotLightSpace = fs_in.FragPosSpotLightSpace;
 
-    gNormal = normalize(getNormalFromMap());
+    if (id==0){
+        gNormal = normalize(getNormalFromMap());
 
-    gAlbedoRoughness.rgb = texture(albedo_map, fs_in.TexCoords).rgb;
-    gAlbedoRoughness.a = texture(ao_map, fs_in.TexCoords).r;
+        gAlbedoRoughness.rgb = texture(albedo_map, fs_in.TexCoords).rgb;
+        gAlbedoRoughness.a = texture(ao_map, fs_in.TexCoords).r;
+    } else if (id==1) {
+        gNormal = vec3(0, 1.0, 0);
+
+        gAlbedoRoughness.rgb = vec3(0.3);
+        gAlbedoRoughness.a = 1.0;
+    }
 }
