@@ -7,18 +7,19 @@
 
 #include <learnopengl/filesystem.h>
 #include <learnopengl/shader.h>
-#include <learnopengl/model.h>
 
 #include <iostream>
 
+#include "model.h"
 #include "camera.h"
+
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
 #include "debuger/depth_shower.h"
-#include "g_buffer.h"
 #include "debuger/map_shower.h"
 #include "transform.h"
+#include "g_buffer.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -95,9 +96,12 @@ int main() {
     Shader cube_shader("shader/cube.vs", "shader/cube.fs");
 
     // load models
-    // -----------
-    string path = "asset/nb574/nb574.obj";
-    Model my_model(FileSystem::getPath(path));
+    string path = "asset/nb574/";
+    Model my_model(FileSystem::getPath(path + "nb574.obj"));
+
+    auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
+    auto normal_map = TextureFromFile("normals.jpg", FileSystem::getPath(path), false);
+    auto ao_map = TextureFromFile("occlusion.jpg", FileSystem::getPath(path), false);
 
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -177,6 +181,16 @@ int main() {
         g_buffer.get_shader().setMat4("model", transform.get_model());
         g_buffer.get_shader().setMat4("view", transform.get_view());
         g_buffer.get_shader().setMat4("projection", transform.get_projection());
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, albedo_map);
+        g_buffer.get_shader().setInt("albedo_map", 0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normal_map);
+        g_buffer.get_shader().setInt("normal_map", 1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, ao_map);
+        g_buffer.get_shader().setInt("ao_map", 2);
         my_model.Draw(g_buffer.get_shader());
 
         // 3. render
@@ -206,7 +220,7 @@ int main() {
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_light[0]);
 
-        // map_shower.Show(g_buffer.get_g_pos_dir_light());
+        // map_shower.Show(g_buffer.get_g_albedo_roughness(), 3);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);

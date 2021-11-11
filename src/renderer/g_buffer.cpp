@@ -57,7 +57,7 @@ void GBuffer::Bind() {
 void GBuffer::AddBuffer(unsigned int &map, int idx) const {
     glGenTextures(1, &map);
     glBindTexture(GL_TEXTURE_2D, map);
-    if (idx == 0 || idx == 7) {
+    if (idx == 0 || idx == 6) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width_, height_, 0, GL_RGB, GL_FLOAT, nullptr);
     } else {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width_, height_, 0, GL_RGBA, GL_FLOAT, nullptr);

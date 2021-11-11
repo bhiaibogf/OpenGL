@@ -40,27 +40,6 @@ uniform SpotLight spot_light;
 uniform vec3 camera_pos;
 
 const float PI = 3.14159265359;
-// ----------------------------------------------------------------------------
-// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
-// Don't worry if you don't get what's going on; you generally want to do normal 
-// mapping the usual way for performance anways; I do plan make a note of this 
-// technique somewhere later in the normal mapping tutorial.
-//vec3 getNormalFromMap() {
-//    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
-//
-//    vec3 Q1  = dFdx(fs_in.WorldPos);
-//    vec3 Q2  = dFdy(fs_in.WorldPos);
-//    vec2 st1 = dFdx(fs_in.TexCoords);
-//    vec2 st2 = dFdy(fs_in.TexCoords);
-//
-//    vec3 N   = normalize(fs_in.Normal);
-//    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-//    vec3 B  = -normalize(cross(N, T));
-//    mat3 TBN = mat3(T, B, N);
-//
-//    return normalize(TBN * tangentNormal);
-//}
-
 
 float CalVis(vec3 N, vec3 L, vec4 fragPosLightSpace, sampler2D shadow_map){
     // perform perspective divide
@@ -225,8 +204,8 @@ void main() {
 
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
-    float ao = 1.f;
-    //    float ao        = texture(ao_map, fs_in.TexCoords).r;
+    //    float ao = 1.f;
+    float ao = texture(gAlbedoRoughness, TexCoords).a;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 color = ambient + Lo;

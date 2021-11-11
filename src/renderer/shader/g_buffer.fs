@@ -24,6 +24,26 @@ uniform sampler2D metallic_map;
 uniform sampler2D roughness_map;
 uniform sampler2D ao_map;
 
+// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
+// Don't worry if you don't get what's going on; you generally want to do normal
+// mapping the usual way for performance anways; I do plan make a note of this
+// technique somewhere later in the normal mapping tutorial.
+vec3 getNormalFromMap() {
+    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(fs_in.WorldPos);
+    vec3 Q2  = dFdy(fs_in.WorldPos);
+    vec2 st1 = dFdx(fs_in.TexCoords);
+    vec2 st2 = dFdy(fs_in.TexCoords);
+
+    vec3 N   = normalize(fs_in.Normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
 void main() {
     gPosition = fs_in.WorldPos;
 
@@ -33,8 +53,8 @@ void main() {
     }
     //    gFragPosSpotLightSpace = fs_in.FragPosSpotLightSpace;
 
-    gNormal = normalize(fs_in.Normal);
+    gNormal = normalize(getNormalFromMap());
 
     gAlbedoRoughness.rgb = texture(albedo_map, fs_in.TexCoords).rgb;
-    gAlbedoRoughness.a = texture(roughness_map, fs_in.TexCoords).r;
+    gAlbedoRoughness.a = texture(ao_map, fs_in.TexCoords).r;
 }

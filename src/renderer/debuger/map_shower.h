@@ -15,9 +15,11 @@ public:
 
     void Show(unsigned int map) override;
 
+    void Show(unsigned int map, int idx);
+
 private:
-    Shader rgb_shader = Shader("shader/quad.vs", "shader/show_map.fs");
-    Shader a_shader = Shader("shader/quad.vs", "shader/orthographic_depth.fs");
+    Shader rgb_shader_ = Shader("shader/quad.vs", "shader/show_map.fs");
+    Shader a_shader_ = Shader("shader/quad.vs", "shader/show_map_channel.fs");
 
 };
 
