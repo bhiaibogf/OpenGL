@@ -98,12 +98,20 @@ int main() {
     // load models
     string path = "asset/nb574/";
     Model my_model(FileSystem::getPath(path + "nb574.obj"));
+
     Quad floor;
     Transform transform_floor;
     transform_floor.Scale(glm::vec3(10.f));
     transform_floor.Rotate(90, glm::vec3(1.0, 0.0, 0.0));
     transform_floor.Translate(glm::vec3(0, 0, 0.19));
     transform_floor.Update();
+
+    Quad mirror;
+    Transform transform_mirror;
+    transform_mirror.Scale(glm::vec3(2.f));
+    transform_mirror.Rotate(120, glm::vec3(0.0, 1.0, 0.0));
+    transform_mirror.Translate(glm::vec3(0, 0, 2));
+    transform_mirror.Update();
 
     auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
     auto normal_map = TextureFromFile("normals.jpg", FileSystem::getPath(path), false);
@@ -206,6 +214,10 @@ int main() {
         g_buffer.get_shader().setInt("id", 1);
         floor.Draw();
 
+        g_buffer.get_shader().setMat4("model", transform_mirror.get_model());
+        g_buffer.get_shader().setInt("id", 2);
+        mirror.Draw();
+
         // 3. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -235,6 +247,7 @@ int main() {
 
         // map_shower.Show(g_buffer.get_g_albedo_roughness(), 3);
         // map_shower.Show(g_buffer.get_g_albedo_roughness());
+        // map_shower.Show(g_buffer.get_g_normal());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);

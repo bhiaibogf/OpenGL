@@ -65,5 +65,10 @@ void main() {
 
         gAlbedoRoughness.rgb = vec3(0.3);
         gAlbedoRoughness.a = 1.0;
+    } else if (id==2){
+        gNormal = normalize(vec3(0, 0.5, 0.866));
+
+        gAlbedoRoughness.rgb = vec3(0.0);
+        gAlbedoRoughness.a = 0.0;
     }
 }
