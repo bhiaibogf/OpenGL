@@ -18,6 +18,7 @@
 #include "debuger/depth_shower.h"
 #include "g_buffer.h"
 #include "debuger/map_shower.h"
+#include "transform.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -43,19 +44,17 @@ float lastY = kScrHeight / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+float delta_time = 0.0f;
+float last_frame = 0.0f;
 
 GLFWwindow *Init() {
     // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // glfw window creation
-    // --------------------
     GLFWwindow *window = glfwCreateWindow(kScrWidth, kScrHeight, "sketchfab", nullptr, nullptr);
     if (!window) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -73,7 +72,6 @@ GLFWwindow *Init() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return nullptr;
@@ -89,11 +87,9 @@ int main() {
     GLFWwindow *window = Init();
 
     // configure global opengl state
-    // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
     // build and compile shaders
-    // -------------------------
     Shader pbr_shader("shader/shading.vs", "shader/pbr.fs");
     Shader depth_shader("shader/depth.vs", "shader/depth.fs");
     Shader cube_shader("shader/cube.vs", "shader/cube.fs");
@@ -106,64 +102,55 @@ int main() {
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    // set lights
     // directional light
     DirectionalLight directional_light(glm::vec3(1.f), glm::vec3(-0.2f, -1.0f, -0.3f));
-
-    // point light 1
-    PointLight point_light[4] = {
+    // point lights
+    PointLight point_lights[4] = {
             PointLight(glm::vec3(1000.f), glm::vec3(20.f, 15.f, 20.f)),
             PointLight(glm::vec3(1000.f), glm::vec3(-23.f, 20.f, -40.f)),
             PointLight(glm::vec3(1000.f), glm::vec3(40.f, 25.f, -12.f)),
             PointLight(glm::vec3(1000.f), glm::vec3(-5.0f, 30.0f, -30.f))
     };
-
-    // spotLight
+    // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
 
+    // g_buffer
+    GBuffer g_buffer(kScrWidth, kScrHeight);
+    Quad quad;
+
+    // for debug
     DepthShower depth_shower;
     MapShower map_shower;
 
-    GBuffer g_buffer(kScrWidth, kScrHeight);
-
-    Quad quad;
+    Transform transform;
+    transform.Rotate(270.f, glm::vec3(1.0, 0.0, 0.0));
 
     // render loop
-    // -----------
     while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
-        // --------------------
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
 
         // input
-        // -----
         processInput(window);
 
-        // model transform
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight,
-                                                0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-
-        auto scale = glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f));
-
+        // transformations
         auto x_translate = glm::translate(glm::mat4(1.f), camera.getRight() * x_off * 0.01f);
         auto y_translate = glm::translate(glm::mat4(1.f), camera.getWorldUp() * y_off * 0.01f);
-
         auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.getWorldUp());
         auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
+        transform.Update(y_rotate * x_rotate * y_translate * x_translate);
 
-        model = y_rotate * x_rotate * y_translate * x_translate * model;
+        transform.set_view(camera.GetViewMatrix());
+        transform.set_projection(
+                glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight, 0.1f, 100.0f));
 
+        // 1. depth
         depth_shader.use();
-        depth_shader.setMat4("model", model);
+        depth_shader.setMat4("model", transform.get_model());
 
         directional_light.SetDepthShader(depth_shader);
         my_model.Draw(depth_shader);
@@ -172,27 +159,27 @@ int main() {
         directional_light.SetShader(pbr_shader);
 
         for (int i = 0; i < 4; i++) {
-            point_light[i].SetDepthShader(depth_shader);
+            point_lights[i].SetDepthShader(depth_shader);
             my_model.Draw(depth_shader);
 
-            point_light[i].SetShader(g_buffer.get_shader(), i);
-            point_light[i].SetShader(pbr_shader, i);
+            point_lights[i].SetShader(g_buffer.get_shader(), i);
+            point_lights[i].SetShader(pbr_shader, i);
         }
 
         directional_light.SetShader(pbr_shader);
         spot_light.SetShader(pbr_shader);
 
+        // 2. get g buffer
         // reset viewport
-        // render
-        // ------
         glViewport(0, 0, kScrWidth, kScrHeight);
 
         g_buffer.Bind();
-        g_buffer.get_shader().setMat4("model", model);
-        g_buffer.get_shader().setMat4("view", view);
-        g_buffer.get_shader().setMat4("projection", projection);
+        g_buffer.get_shader().setMat4("model", transform.get_model());
+        g_buffer.get_shader().setMat4("view", transform.get_view());
+        g_buffer.get_shader().setMat4("projection", transform.get_projection());
         my_model.Draw(g_buffer.get_shader());
 
+        // 3. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -209,25 +196,24 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         cube_shader.use();
-        cube_shader.setMat4("view", view);
-        cube_shader.setMat4("projection", projection);
+        cube_shader.setMat4("view", transform.get_view());
+        cube_shader.setMat4("projection", transform.get_projection());
         for (int i = 0; i < 4; i++) {
-            point_light[i].Draw(cube_shader);
+            point_lights[i].Draw(cube_shader);
         }
 
+        // 4. debug
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_light[0]);
 
         // map_shower.Show(g_buffer.get_g_pos_dir_light());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
@@ -239,13 +225,13 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, delta_time);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, delta_time);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, delta_time);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, delta_time);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
