@@ -5,13 +5,15 @@ in vec2 TexCoords;
 
 // material parameters
 uniform sampler2D gPosition;
+uniform sampler2D gNormalId;
+uniform sampler2D gAlbedo;
+uniform sampler2D gAoMetallicRoughness;
+
 uniform sampler2D gFragPosDirLightSpace;
 uniform sampler2D gFragPosPointLightSpace0;
 uniform sampler2D gFragPosPointLightSpace1;
 uniform sampler2D gFragPosPointLightSpace2;
 uniform sampler2D gFragPosPointLightSpace3;
-uniform sampler2D gNormal;
-uniform sampler2D gAlbedoRoughness;
 
 // lights
 struct DirectionalLight {
@@ -150,15 +152,15 @@ vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, v
 }
 
 vec3 Shading(vec2 uv){
-    vec3 albedo = pow(texture(gAlbedoRoughness, uv).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(gAlbedo, uv).rgb, vec3(2.2));
     //    float metallic  = texture(metallic_map, uv).r;
     float metallic = 0.f;
     //    float roughness = texture(gAlbedoRoughness, uv).r;
     float roughness = 0.9f;
 
     //    vec3 N = getNormalFromMap();
-    vec3 N = texture(gNormal, uv).rgb;
-    vec3 WorldPos = texture(gPosition, uv).rgb;
+    vec3 N = texture(gNormalId, uv).rgb;
+    vec3 WorldPos = Project(texture(gPosition, uv));
     vec3 V = normalize(camera_pos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
@@ -211,7 +213,7 @@ vec3 Shading(vec2 uv){
     // ambient lighting (note that the next IBL tutorial will replace
     // this ambient lighting with environment lighting).
     //    float ao = 1.f;
-    float ao = texture(gAlbedoRoughness, uv).a;
+    float ao = texture(gAoMetallicRoughness, uv).r;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
     return ambient + Lo;
@@ -223,9 +225,15 @@ vec2 GetScreenCoordinate(vec3 posWorld) {
 }
 
 void main() {
-    vec3 pos = texture(gPosition, TexCoords).xyz;
+    vec3 pos = Project(texture(gPosition, TexCoords));
     vec2 uv = GetScreenCoordinate(pos);
-    vec3 color = Shading(uv);
+    float id = texture(gNormalId, TexCoords).w;
+    vec3 color = vec3(0.0);
+    if (0.05 < id && id < 0.25){
+        color = Shading(uv);
+    } else if (0.25<id && id<0.35){
+        color = Shading(uv);
+    }
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));

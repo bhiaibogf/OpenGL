@@ -239,23 +239,23 @@ int main() {
         glClearColor(0.f, 0.f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // pbr_shader.use();
-        // g_buffer.SetGBuffer(pbr_shader);
-        // pbr_shader.setVec3("camera_pos", camera.Position);
-        // pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
-        // quad.Draw();
-        //
-        // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_g_fbo());
-        // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        // glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //
-        // cube_shader.use();
-        // cube_shader.setMat4("view", transform.get_view());
-        // cube_shader.setMat4("projection", transform.get_projection());
-        // for (int i = 0; i < 4; i++) {
-        //     point_lights[i].Draw(cube_shader);
-        // }
+        pbr_shader.use();
+        g_buffer.SetGBuffer(pbr_shader);
+        pbr_shader.setVec3("camera_pos", camera.Position);
+        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
+        quad.Draw();
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        cube_shader.use();
+        cube_shader.setMat4("view", transform.get_view());
+        cube_shader.setMat4("projection", transform.get_projection());
+        for (int i = 0; i < 4; i++) {
+            point_lights[i].Draw(cube_shader);
+        }
 
         // 4. debug
         // depth_shower.Show(directional_light);

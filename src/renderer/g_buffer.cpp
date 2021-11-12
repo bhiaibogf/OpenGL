@@ -117,12 +117,12 @@ void GBuffer::SetGBuffer(Shader &shader) {
 
     glActiveTexture(GL_TEXTURE6);
     glBindTexture(GL_TEXTURE_2D, g_normal_id_);
-    shader.setInt("gNormal", 6);
+    shader.setInt("gNormalId", 6);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, g_albedo_);
-    shader.setInt("gAlbedoRoughness", 7);
+    shader.setInt("gAlbedo", 7);
 
     glActiveTexture(GL_TEXTURE8);
     glBindTexture(GL_TEXTURE_2D, g_ao_metallic_roughness_);
-    shader.setInt("gId", 8);
+    shader.setInt("gAoMetallicRoughness", 8);
 }

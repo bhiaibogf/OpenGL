@@ -13,17 +13,13 @@ public:
 
     ~GBuffer() = default;
 
-    void BindGBuffer();
+    unsigned int get_fbo() const {
+        return l_fbo_;
+    }
 
-    void BindLBuffer();
-
-    void UnbindLBuffer();
-
-    Shader &get_g_shader() { return g_shader_; }
-
-    Shader &get_l_shader() { return l_shader_; }
-
-    void SetGBuffer(Shader &shader);
+    unsigned int get_depth_rbo() const {
+        return depth_rbo_;
+    }
 
     unsigned int get_g_position() const { return g_position_; }
 
@@ -39,9 +35,17 @@ public:
 
     unsigned int get_g_pos_spot_light() const { return g_pos_spot_light_; }
 
-    unsigned int get_depth_rbo() const {
-        return depth_rbo_;
-    }
+    Shader &get_g_shader() { return g_shader_; }
+
+    Shader &get_l_shader() { return l_shader_; }
+
+    void SetGBuffer(Shader &shader);
+
+    void BindGBuffer();
+
+    void BindLBuffer();
+
+    void UnbindLBuffer();
 
 private:
     static const int kGBufferNum = 4;
