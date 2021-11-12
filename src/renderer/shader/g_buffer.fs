@@ -51,7 +51,7 @@ void main() {
         gAlbedo.rgb = vec3(0.3);
         gAoMetallicRoughness.r = 1.0;
     } else if (uId==3){
-        gNormalId.xyz = normalize(vec3(0, 0.5, 0.866));
+        gNormalId.xyz = normalize(vec3(0, -1, 1));
         gNormalId.w = 0.3;
 
         gAlbedo.rgb = vec3(0.0);

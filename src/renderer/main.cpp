@@ -109,8 +109,8 @@ int main() {
     Quad mirror;
     Transform transform_mirror;
     transform_mirror.Scale(glm::vec3(2.f));
-    transform_mirror.Rotate(120, glm::vec3(0.0, 1.0, 0.0));
-    transform_mirror.Translate(glm::vec3(0, 0, 2));
+    transform_mirror.Rotate(45 + 180, glm::vec3(1.0, 0.0, 0.0));
+    transform_mirror.Translate(glm::vec3(0, -2, 0));
     transform_mirror.Update();
 
     auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
@@ -165,7 +165,7 @@ int main() {
 
         transform.set_view(camera.GetViewMatrix());
         transform.set_projection(
-                glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight, 0.1f, 100.0f));
+                glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight, 0.1f, 20.0f));
 
         // 1. depth
         depth_shader.use();
@@ -260,6 +260,7 @@ int main() {
         // 4. debug
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_lights[0]);
+        // depth_shower.Show(g_buffer.get_g_depth());
 
         // map_shower.Show(g_buffer.get_g_position());
         // map_shower.Show(g_buffer.get_g_normal_id());

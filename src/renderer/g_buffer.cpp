@@ -23,11 +23,18 @@ GBuffer::GBuffer(unsigned int width, unsigned int height) : width_(width), heigh
     }
     glDrawBuffers(kGBufferNum, g_attachments);
 
-    // create and attach depth buffer (renderbuffer)
-    glGenRenderbuffers(1, &depth_rbo_);
-    glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width_, height_);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo_);
+    glGenTextures(1, &g_depth_);
+    glBindTexture(GL_TEXTURE_2D, g_depth_);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float border_color[] = {1.0, 1.0, 1.0, 1.0};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, g_depth_, 0);
 
     // finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -50,6 +57,8 @@ GBuffer::GBuffer(unsigned int width, unsigned int height) : width_(width), heigh
     }
     glDrawBuffers(kLBufferNum, l_attachments);
 
+    // create and attach depth buffer (renderbuffer)
+    glGenRenderbuffers(1, &depth_rbo_);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo_);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width_, height_);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo_);
@@ -71,16 +80,16 @@ void GBuffer::BindGBuffer() {
 void GBuffer::BindLBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, l_fbo_);
     glClearColor(0.f, 0.8f, 0.f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDepthFunc(GL_LEQUAL);
+    // glDepthFunc(GL_LEQUAL);
 
     l_shader_.use();
 }
 
 void GBuffer::UnbindLBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDepthFunc(GL_LESS);
+    // glDepthFunc(GL_LESS);
 }
 
 void GBuffer::AddBuffer(unsigned int &map, int idx) const {
@@ -125,4 +134,8 @@ void GBuffer::SetGBuffer(Shader &shader) {
     glActiveTexture(GL_TEXTURE8);
     glBindTexture(GL_TEXTURE_2D, g_ao_metallic_roughness_);
     shader.setInt("gAoMetallicRoughness", 8);
+
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, g_depth_);
+    shader.setInt("gDepth", 9);
 }

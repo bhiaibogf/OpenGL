@@ -25,6 +25,8 @@ public:
 
     unsigned int get_g_normal_id() const { return g_normal_id_; }
 
+    unsigned int get_g_depth() const { return g_depth_; }
+
     unsigned int get_g_albedo() const { return g_albedo_; }
 
     unsigned int get_g_pos_dir_light() const { return g_pos_dir_light_; }
@@ -55,7 +57,7 @@ private:
 
     unsigned int g_fbo_, l_fbo_;
 
-    unsigned int g_position_, g_normal_id_, g_albedo_, g_ao_metallic_roughness_;
+    unsigned int g_position_, g_normal_id_, g_albedo_, g_ao_metallic_roughness_, g_depth_;
     unsigned int g_pos_dir_light_, g_pos_point_light_[4], g_pos_spot_light_;
 
     unsigned int depth_rbo_;

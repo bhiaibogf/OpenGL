@@ -6,6 +6,7 @@ in vec2 TexCoords;
 // material parameters
 uniform sampler2D gPosition;
 uniform sampler2D gNormalId;
+uniform sampler2D gDepth;
 uniform sampler2D gAlbedo;
 uniform sampler2D gAoMetallicRoughness;
 
@@ -224,6 +225,46 @@ vec2 GetScreenCoordinate(vec3 posWorld) {
     return uv;
 }
 
+float GetDepth(vec3 posWorld) {
+    float depth = Project(uWorldToScreen * vec4(posWorld, 1.0)).z * 0.5 + 0.5;
+    return depth;
+}
+
+float GetGBufferDepth(vec2 uv) {
+    float depth = texture2D(gDepth, uv).x;
+    if (depth < 1e-2) {
+        depth = 1000.0;
+    }
+    return depth;
+}
+
+bool RayMarch(vec3 ori, vec3 dir, out vec3 hit_pos) {
+    float step = 1e-2;
+    float level = 0.0;
+    vec3 next_point = ori;
+    vec2 uv;
+    for (int i=0;i<10000;i++){
+        vec3 old_point = next_point;
+        next_point += step*pow(2.0, level)*dir;
+        uv = GetScreenCoordinate(next_point);
+        if ((GetDepth(next_point) > GetGBufferDepth(uv)) || (uv.x>1.0 || uv.x<0.0 || uv.y>1.0 || uv.y<0.0)){
+            next_point = old_point;
+            uv = GetScreenCoordinate(next_point);
+            level -= 1.0;
+        } else {
+            level += 1.0;
+        }
+        if (level < 0.0){
+            break;
+        }
+    }
+    if (GetGBufferDepth(uv)!=1.0 && abs(GetDepth(next_point)-GetGBufferDepth(uv)) < step){
+        hit_pos = next_point;
+        return true;
+    }
+    return false;
+}
+
 void main() {
     vec3 pos = Project(texture(gPosition, TexCoords));
     vec2 uv = GetScreenCoordinate(pos);
@@ -232,7 +273,15 @@ void main() {
     if (0.05 < id && id < 0.25){
         color = Shading(uv);
     } else if (0.25<id && id<0.35){
-        color = Shading(uv);
+        vec3 N = normalize(texture(gNormalId, uv).rgb);
+        vec3 V = normalize(camera_pos - pos);
+        vec3 dir = reflect(-V, N);
+        vec3 hit_pos;
+        if (RayMarch(pos, dir, hit_pos)){
+            color = Shading(GetScreenCoordinate(hit_pos));
+        } else {
+            color = vec3(0.6, 0.5, 0.4);
+        }
     }
 
     // HDR tonemapping

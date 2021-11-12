@@ -16,6 +16,8 @@ public:
 
     void Show(Light &light);
 
+    void Show(unsigned int map) override;
+
 private:
     Shader orthographic_shader = Shader("shader/quad.vs", "shader/orthographic_depth.fs");
     Shader perspective_shader = Shader("shader/quad.vs", "shader/perspective_depth.fs");

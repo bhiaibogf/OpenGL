@@ -14,3 +14,10 @@ void DepthShower::Show(Light &light) {
     }
     Shower::Show(light.GetDepthMap());
 }
+
+void DepthShower::Show(unsigned int map) {
+    perspective_shader.use();
+    perspective_shader.setFloat("near_plane", 0.1);
+    perspective_shader.setFloat("far_plane", 20.f);
+    Shower::Show(map);
+}
