@@ -174,81 +174,106 @@ int main() {
         directional_light.SetDepthShader(depth_shader);
         my_model.Draw(depth_shader);
 
-        directional_light.SetShader(g_buffer.get_shader());
+        directional_light.SetShader(g_buffer.get_l_shader());
         directional_light.SetShader(pbr_shader);
 
         for (int i = 0; i < 4; i++) {
             point_lights[i].SetDepthShader(depth_shader);
             my_model.Draw(depth_shader);
 
-            point_lights[i].SetShader(g_buffer.get_shader(), i);
+            point_lights[i].SetShader(g_buffer.get_l_shader(), i);
             point_lights[i].SetShader(pbr_shader, i);
         }
 
-        directional_light.SetShader(pbr_shader);
         spot_light.SetShader(pbr_shader);
 
         // 2. get g buffer
         // reset viewport
         glViewport(0, 0, kScrWidth, kScrHeight);
 
-        g_buffer.Bind();
-        g_buffer.get_shader().setMat4("model", transform.get_model());
-        g_buffer.get_shader().setMat4("view", transform.get_view());
-        g_buffer.get_shader().setMat4("projection", transform.get_projection());
+        g_buffer.BindGBuffer();
+        g_buffer.get_g_shader().setMat4("uModel", transform.get_model());
+        g_buffer.get_g_shader().setMat4("uView", transform.get_view());
+        g_buffer.get_g_shader().setMat4("uProjection", transform.get_projection());
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo_map);
-        g_buffer.get_shader().setInt("albedo_map", 0);
+        g_buffer.get_g_shader().setInt("uAlbedoMap", 0);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, normal_map);
-        g_buffer.get_shader().setInt("normal_map", 1);
+        g_buffer.get_g_shader().setInt("uNormalMap", 1);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, ao_map);
-        g_buffer.get_shader().setInt("ao_map", 2);
+        g_buffer.get_g_shader().setInt("uAoMap", 2);
 
-        g_buffer.get_shader().setInt("id", 0);
-        my_model.Draw(g_buffer.get_shader());
+        g_buffer.get_g_shader().setInt("uId", 1);
+        my_model.Draw(g_buffer.get_g_shader());
 
-        g_buffer.get_shader().setMat4("model", transform_floor.get_model());
-        g_buffer.get_shader().setInt("id", 1);
+        g_buffer.get_g_shader().setMat4("uModel", transform_floor.get_model());
+        g_buffer.get_g_shader().setInt("uId", 2);
         floor.Draw();
 
-        g_buffer.get_shader().setMat4("model", transform_mirror.get_model());
-        g_buffer.get_shader().setInt("id", 2);
+        g_buffer.get_g_shader().setMat4("uModel", transform_mirror.get_model());
+        g_buffer.get_g_shader().setInt("uId", 3);
         mirror.Draw();
+
+        g_buffer.BindLBuffer();
+
+        g_buffer.get_l_shader().setMat4("uModel", transform.get_model());
+        g_buffer.get_l_shader().setMat4("uView", transform.get_view());
+        g_buffer.get_l_shader().setMat4("uProjection", transform.get_projection());
+
+        my_model.Draw(g_buffer.get_l_shader());
+
+        g_buffer.get_l_shader().setMat4("uModel", transform_floor.get_model());
+        floor.Draw();
+
+        g_buffer.get_l_shader().setMat4("uModel", transform_mirror.get_model());
+        mirror.Draw();
+
+        g_buffer.UnbindLBuffer();
 
         // 3. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClearColor(0.f, 0.f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pbr_shader.use();
-        g_buffer.SetGBuffer(pbr_shader);
-        pbr_shader.setVec3("camera_pos", camera.Position);
-        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
-        quad.Draw();
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        cube_shader.use();
-        cube_shader.setMat4("view", transform.get_view());
-        cube_shader.setMat4("projection", transform.get_projection());
-        for (int i = 0; i < 4; i++) {
-            point_lights[i].Draw(cube_shader);
-        }
+        // pbr_shader.use();
+        // g_buffer.SetGBuffer(pbr_shader);
+        // pbr_shader.setVec3("camera_pos", camera.Position);
+        // pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
+        // quad.Draw();
+        //
+        // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_g_fbo());
+        // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        // glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //
+        // cube_shader.use();
+        // cube_shader.setMat4("view", transform.get_view());
+        // cube_shader.setMat4("projection", transform.get_projection());
+        // for (int i = 0; i < 4; i++) {
+        //     point_lights[i].Draw(cube_shader);
+        // }
 
         // 4. debug
         // depth_shower.Show(directional_light);
-        // depth_shower.Show(point_light[0]);
+        // depth_shower.Show(point_lights[0]);
 
-        // map_shower.Show(g_buffer.get_g_albedo_roughness(), 3);
-        // map_shower.Show(g_buffer.get_g_albedo_roughness());
-        // map_shower.Show(g_buffer.get_g_normal());
+        // map_shower.Show(g_buffer.get_g_position());
+        // map_shower.Show(g_buffer.get_g_normal_id());
+        // map_shower.Show(g_buffer.get_g_albedo());
+        // map_shower.Show(g_buffer.get_g_normal_id(), 3);
+        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 0);
+        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 1);
+        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 2);
+
+        // map_shower.Show(g_buffer.get_g_pos_dir_light());
+        // map_shower.Show(g_buffer.get_g_pos_point_light()[0]);
+        // map_shower.Show(g_buffer.get_g_pos_point_light()[1]);
+        // map_shower.Show(g_buffer.get_g_pos_point_light()[2]);
+        // map_shower.Show(g_buffer.get_g_pos_point_light()[3]);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);

@@ -1,40 +1,30 @@
 #version 330 core
-layout (location = 0) out vec3 gPosition;
-layout (location = 1) out vec4 gFragPosDirLightSpace;
-layout (location = 2) out vec4 gFragPosPointLightSpace[4];
-//layout (location = 6) out vec4 gFragPosSpotLightSpace;
-layout (location = 6) out vec3 gNormal;
-layout (location = 7) out vec4 gAlbedoRoughness;
+layout (location = 0) out vec4 gPosition;
+layout (location = 1) out vec4 gNormalId;
+layout (location = 2) out vec4 gAlbedo;
+layout (location = 3) out vec4 gAoMetallicRoughness;
 
 in Varying{
-    vec3 WorldPos;
-    vec4 FragPosDirLightSpace;
-    vec4 FragPosPointLightSpace[4];
-    vec4 FragPosSpotLightSpace;
-
+    vec4 WorldPos;
     vec3 Normal;
-
     vec2 TexCoords;
 } fs_in;
 
 // material parameters
-uniform sampler2D albedo_map;
-uniform sampler2D normal_map;
-uniform sampler2D metallic_map;
-uniform sampler2D roughness_map;
-uniform sampler2D ao_map;
+uniform sampler2D uAlbedoMap;
+uniform sampler2D uNormalMap;
+uniform sampler2D uMetallicMap;
+uniform sampler2D uRoughnessMap;
+uniform sampler2D uAoMap;
 
-uniform int id;
+uniform int uId;
 
-// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
-// Don't worry if you don't get what's going on; you generally want to do normal
-// mapping the usual way for performance anways; I do plan make a note of this
-// technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(normal_map, fs_in.TexCoords).xyz * 2.0 - 1.0;
+    vec3 tangent_normal = texture(uNormalMap, fs_in.TexCoords).xyz * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(fs_in.WorldPos);
-    vec3 Q2  = dFdy(fs_in.WorldPos);
+    vec3 world_position = fs_in.WorldPos.xyz / fs_in.WorldPos.w;
+    vec3 Q1  = dFdx(world_position);
+    vec3 Q2  = dFdy(world_position);
     vec2 st1 = dFdx(fs_in.TexCoords);
     vec2 st2 = dFdy(fs_in.TexCoords);
 
@@ -43,32 +33,28 @@ vec3 getNormalFromMap() {
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
-    return normalize(TBN * tangentNormal);
+    return normalize(TBN * tangent_normal);
 }
 
 void main() {
     gPosition = fs_in.WorldPos;
+    if (uId==1){
+        gNormalId.xyz = normalize(getNormalFromMap());
+        gNormalId.w = 0.1;
 
-    gFragPosDirLightSpace = fs_in.FragPosDirLightSpace;
-    for (int i=0;i<4;i++){
-        gFragPosPointLightSpace[i] = fs_in.FragPosPointLightSpace[i];
-    }
-    //    gFragPosSpotLightSpace = fs_in.FragPosSpotLightSpace;
+        gAlbedo.rgb = texture(uAlbedoMap, fs_in.TexCoords).rgb;
+        gAoMetallicRoughness.r = texture(uAoMap, fs_in.TexCoords).r;
+    } else if (uId==2) {
+        gNormalId.xyz = vec3(0, 1.0, 0);
+        gNormalId.w = 0.2;
 
-    if (id==0){
-        gNormal = normalize(getNormalFromMap());
+        gAlbedo.rgb = vec3(0.3);
+        gAoMetallicRoughness.r = 1.0;
+    } else if (uId==3){
+        gNormalId.xyz = normalize(vec3(0, 0.5, 0.866));
+        gNormalId.w = 0.3;
 
-        gAlbedoRoughness.rgb = texture(albedo_map, fs_in.TexCoords).rgb;
-        gAlbedoRoughness.a = texture(ao_map, fs_in.TexCoords).r;
-    } else if (id==1) {
-        gNormal = vec3(0, 1.0, 0);
-
-        gAlbedoRoughness.rgb = vec3(0.3);
-        gAlbedoRoughness.a = 1.0;
-    } else if (id==2){
-        gNormal = normalize(vec3(0, 0.5, 0.866));
-
-        gAlbedoRoughness.rgb = vec3(0.0);
-        gAlbedoRoughness.a = 0.0;
+        gAlbedo.rgb = vec3(0.0);
+        gAoMetallicRoughness.r = 0.0;
     }
 }
