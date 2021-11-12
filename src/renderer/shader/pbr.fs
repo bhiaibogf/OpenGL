@@ -280,7 +280,7 @@ void main() {
         if (RayMarch(pos, dir, hit_pos)){
             color = Shading(GetScreenCoordinate(hit_pos));
         } else {
-            color = vec3(0.6, 0.5, 0.4);
+            discard;
         }
     }
 
