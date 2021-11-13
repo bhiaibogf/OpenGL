@@ -20,6 +20,7 @@
 #include "debuger/map_shower.h"
 #include "transform.h"
 #include "g_buffer.h"
+#include "ssao.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -116,6 +117,8 @@ int main() {
     auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
     auto normal_map = TextureFromFile("normals.jpg", FileSystem::getPath(path), false);
     auto ao_map = TextureFromFile("occlusion.jpg", FileSystem::getPath(path), false);
+
+    SSAO ssao(kScrWidth, kScrHeight);
 
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -233,7 +236,16 @@ int main() {
 
         g_buffer.UnbindLBuffer();
 
-        // 3. render
+        // 3. ssao
+        ssao.get_shader().use();
+        ssao.get_shader().setMat4("uView", transform.get_view());
+        ssao.get_shader().setMat4("uProjection", transform.get_projection());
+        g_buffer.SetGBuffer(ssao.get_shader());
+
+        ssao.Generate();
+        ssao.Blur();
+
+        // 4. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glClearColor(0.f, 0.f, 0.8f, 1.0f);
@@ -243,6 +255,9 @@ int main() {
         g_buffer.SetGBuffer(pbr_shader);
         pbr_shader.setVec3("camera_pos", camera.Position);
         pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
+        glActiveTexture(GL_TEXTURE10);
+        glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
+        pbr_shader.setInt("gAo", 10);
         quad.Draw();
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
@@ -257,11 +272,14 @@ int main() {
             point_lights[i].Draw(cube_shader);
         }
 
-        // 4. debug
+        // 5. debug
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_lights[0]);
         // depth_shower.Show(g_buffer.get_g_depth());
 
+        // map_shower.Show(Sampler::GenerateNoises());
+        // map_shower.Show(ssao.get_ssao(), 0);
+        // map_shower.Show(ssao.get_ssao_blur(), 0);
         // map_shower.Show(g_buffer.get_g_position());
         // map_shower.Show(g_buffer.get_g_normal_id());
         // map_shower.Show(g_buffer.get_g_albedo());
