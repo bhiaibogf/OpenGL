@@ -16,7 +16,7 @@
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
-#include "light/sky_box.h"
+#include "light/ibl.h"
 #include "utils/depth_shower.h"
 #include "utils/map_shower.h"
 #include "transform.h"
@@ -141,7 +141,7 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-    SkyBox sky_box(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
+    IBL sky_box(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
 
     // g_buffer
     GBuffer g_buffer(kScrWidth, kScrHeight);

@@ -2,8 +2,8 @@
 // Created by bhiaibogf on 2021/11/13.
 //
 
-#ifndef SKETCHFAB_SKY_BOX_H
-#define SKETCHFAB_SKY_BOX_H
+#ifndef SKETCHFAB_IBL_H
+#define SKETCHFAB_IBL_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,11 +16,11 @@
 #include "../model/quad.h"
 #include "../utils/cube_map_creator.h"
 
-class SkyBox {
+class IBL {
 public:
-    SkyBox(const std::string &path);
+    IBL(const std::string &path);
 
-    ~SkyBox();
+    ~IBL();
 
     void Draw(glm::mat4 view, glm::mat4 projection);
 
@@ -53,4 +53,4 @@ private:
 };
 
 
-#endif //SKETCHFAB_SKY_BOX_H
+#endif //SKETCHFAB_IBL_H

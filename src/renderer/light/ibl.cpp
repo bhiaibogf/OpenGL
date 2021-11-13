@@ -2,9 +2,9 @@
 // Created by bhiaibogf on 2021/11/13.
 //
 
-#include "sky_box.h"
+#include "ibl.h"
 
-SkyBox::SkyBox(const std::string &path) {
+IBL::IBL(const std::string &path) {
     glGenFramebuffers(1, &captureFBO);
     glGenRenderbuffers(1, &captureRBO);
 
@@ -17,11 +17,11 @@ SkyBox::SkyBox(const std::string &path) {
     GetIrradianceMap();
 }
 
-SkyBox::~SkyBox() {
+IBL::~IBL() {
 
 }
 
-void SkyBox::Draw(glm::mat4 view, glm::mat4 projection) {
+void IBL::Draw(glm::mat4 view, glm::mat4 projection) {
     // render skybox (render as last to prevent overdraw)
     backgroundShader.use();
 
@@ -39,7 +39,7 @@ void SkyBox::Draw(glm::mat4 view, glm::mat4 projection) {
     // quad_.Draw();
 }
 
-void SkyBox::GetIrradianceMap() {
+void IBL::GetIrradianceMap() {
     // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
     // --------------------------------------------------------------------------------
     glGenTextures(1, &irradianceMap);
