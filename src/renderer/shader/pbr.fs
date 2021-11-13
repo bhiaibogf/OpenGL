@@ -239,21 +239,25 @@ vec2 GetScreenCoordinate(vec3 posWorld) {
     return uv;
 }
 
+uniform mat4 uView;
+
 float GetDepth(vec3 posWorld) {
-    float depth = Project(uWorldToScreen * vec4(posWorld, 1.0)).z * 0.5 + 0.5;
+    float depth = Project(uView * vec4(posWorld, 1.0)).z;
     return depth;
 }
 
 float GetGBufferDepth(vec2 uv) {
-    float depth = texture2D(gDepth, uv).x;
-    if (depth < 1e-2) {
-        depth = 1000.0;
+    float id = texture2D(gNormalId, uv).w;
+    if (0.05 < id && id < 0.25){
+        vec3 pos_world = texture2D(gPosition, uv).xyz;
+        return GetDepth(pos_world);
+    } else {
+        return -1e6;
     }
-    return depth;
 }
 
 bool RayMarch(vec3 ori, vec3 dir, out vec3 hit_pos) {
-    float step = 1e-2;
+    float step = 1e-6;
     float level = 0.0;
     vec3 next_point = ori;
     vec2 uv;
@@ -261,7 +265,7 @@ bool RayMarch(vec3 ori, vec3 dir, out vec3 hit_pos) {
         vec3 old_point = next_point;
         next_point += step*pow(2.0, level)*dir;
         uv = GetScreenCoordinate(next_point);
-        if ((GetDepth(next_point) > GetGBufferDepth(uv)) || (uv.x>1.0 || uv.x<0.0 || uv.y>1.0 || uv.y<0.0)){
+        if ((GetDepth(next_point) < GetGBufferDepth(uv)) || (uv.x>1.0 || uv.x<0.0 || uv.y>1.0 || uv.y<0.0)){
             next_point = old_point;
             uv = GetScreenCoordinate(next_point);
             level -= 1.0;
@@ -272,7 +276,7 @@ bool RayMarch(vec3 ori, vec3 dir, out vec3 hit_pos) {
             break;
         }
     }
-    if (GetGBufferDepth(uv)!=1.0 && abs(GetDepth(next_point)-GetGBufferDepth(uv)) < step){
+    if (abs(GetDepth(next_point)-GetGBufferDepth(uv)) < 1){
         hit_pos = next_point;
         return true;
     }
