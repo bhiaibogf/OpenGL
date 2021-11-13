@@ -16,6 +16,7 @@
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
+#include "light/sky_box.h"
 #include "debuger/depth_shower.h"
 #include "debuger/map_shower.h"
 #include "transform.h"
@@ -90,6 +91,10 @@ int main() {
 
     // configure global opengl state
     glEnable(GL_DEPTH_TEST);
+    // set depth function to less than AND equal for skybox depth trick.
+    glDepthFunc(GL_LEQUAL);
+    // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // build and compile shaders
     Shader pbr_shader("shader/shading.vs", "shader/pbr.fs");
@@ -136,6 +141,7 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    SkyBox sky_box(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
 
     // g_buffer
     GBuffer g_buffer(kScrWidth, kScrHeight);
@@ -276,6 +282,7 @@ int main() {
         for (int i = 0; i < 4; i++) {
             point_lights[i].Draw(cube_shader);
         }
+        sky_box.Draw(transform.get_view(), transform.get_projection());
 
         // 5. debug
         // depth_shower.Show(directional_light);
