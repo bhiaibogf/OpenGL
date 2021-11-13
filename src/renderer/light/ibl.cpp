@@ -21,24 +21,6 @@ IBL::~IBL() {
 
 }
 
-void IBL::Draw(glm::mat4 view, glm::mat4 projection) {
-    // render skybox (render as last to prevent overdraw)
-    backgroundShader.use();
-
-    backgroundShader.setMat4("view", view);
-    backgroundShader.setMat4("projection", projection);
-    backgroundShader.setInt("environmentMap", 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-    // glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-    // glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
-    cube_.Draw();
-
-    // render BRDF map to screen
-    // brdfShader.use();
-    // quad_.Draw();
-}
-
 void IBL::GetIrradianceMap() {
     // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
     // --------------------------------------------------------------------------------

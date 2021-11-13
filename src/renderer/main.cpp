@@ -22,6 +22,7 @@
 #include "transform.h"
 #include "g_buffer.h"
 #include "ssao.h"
+#include "light/sky_box.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -141,7 +142,10 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-    IBL sky_box(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
+    path = FileSystem::getPath("resources/textures/hdr/newport_loft.hdr");
+    // IBL ibl(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
+    SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
+
 
     // g_buffer
     GBuffer g_buffer(kScrWidth, kScrHeight);
@@ -173,8 +177,7 @@ int main() {
         transform.Update(y_rotate * x_rotate * y_translate * x_translate);
 
         transform.set_view(camera.GetViewMatrix());
-        transform.set_projection(
-                glm::perspective(glm::radians(camera.Zoom), (float) kScrWidth / (float) kScrHeight, 0.1f, 20.0f));
+        transform.set_projection(camera.GetProjectionMatrix());
 
         // 1. depth
         depth_shader.use();
@@ -279,10 +282,10 @@ int main() {
         cube_shader.use();
         cube_shader.setMat4("view", transform.get_view());
         cube_shader.setMat4("projection", transform.get_projection());
-        for (int i = 0; i < 4; i++) {
-            point_lights[i].Draw(cube_shader);
+        for (auto &point_light: point_lights) {
+            point_light.Draw(cube_shader);
         }
-        sky_box.Draw(transform.get_view(), transform.get_projection());
+        sky_box.Draw(camera);
 
         // 5. debug
         // depth_shower.Show(directional_light);

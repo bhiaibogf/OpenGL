@@ -30,7 +30,6 @@ private:
     unsigned int envCubemap;
     unsigned int irradianceMap;
     unsigned int prefilterMap;
-    Shader backgroundShader = Shader("2.2.2.background.vs", "2.2.2.background.fs");
     Shader irradianceShader = Shader("2.2.2.cubemap.vs", "2.2.2.irradiance_convolution.fs");
     Shader prefilterShader = Shader("2.2.2.cubemap.vs", "2.2.2.prefilter.fs");
     Shader brdfShader = Shader("2.2.2.brdf.vs", "2.2.2.brdf.fs");
