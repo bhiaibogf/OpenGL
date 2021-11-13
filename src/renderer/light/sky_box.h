@@ -14,6 +14,7 @@
 
 #include "../model/cube.h"
 #include "../model/quad.h"
+#include "../utils/cube_map_creator.h"
 
 class SkyBox {
 public:
@@ -29,7 +30,6 @@ private:
     unsigned int envCubemap;
     unsigned int irradianceMap;
     unsigned int prefilterMap;
-    Shader equirectangularToCubemapShader = Shader("2.2.2.cubemap.vs", "2.2.2.equirectangular_to_cubemap.fs");
     Shader backgroundShader = Shader("2.2.2.background.vs", "2.2.2.background.fs");
     Shader irradianceShader = Shader("2.2.2.cubemap.vs", "2.2.2.irradiance_convolution.fs");
     Shader prefilterShader = Shader("2.2.2.cubemap.vs", "2.2.2.prefilter.fs");
@@ -47,8 +47,6 @@ private:
             glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
             glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
     };
-
-    void Convert(const std::string &path);
 
     void GetIrradianceMap();
 

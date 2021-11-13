@@ -17,8 +17,8 @@
 #include "light/point_light.h"
 #include "light/spot_light.h"
 #include "light/sky_box.h"
-#include "debuger/depth_shower.h"
-#include "debuger/map_shower.h"
+#include "utils/depth_shower.h"
+#include "utils/map_shower.h"
 #include "transform.h"
 #include "g_buffer.h"
 #include "ssao.h"
@@ -93,7 +93,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     // set depth function to less than AND equal for skybox depth trick.
     glDepthFunc(GL_LEQUAL);
-    // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+    // enable seamless cube map sampling for lower mip levels in the pre-filter map.
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // build and compile shaders
