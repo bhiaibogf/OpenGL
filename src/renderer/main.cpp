@@ -143,7 +143,7 @@ int main() {
     SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     path = FileSystem::getPath("resources/textures/hdr/newport_loft.hdr");
-    // IBL ibl(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr"));
+    IBL ibl(path);
     SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
 
 
@@ -285,7 +285,11 @@ int main() {
         for (auto &point_light: point_lights) {
             point_light.Draw(cube_shader);
         }
-        sky_box.Draw(camera);
+        // sky_box.Draw(camera);
+        // SkyBox(ibl.get_sky_box()).Draw(camera);
+        SkyBox(ibl.get_irradiance_map()).Draw(camera);
+        // SkyBox(ibl.get_sky_box()).Draw(camera);
+        // SkyBox(ibl.get_sky_box()).Draw(camera);
 
         // 5. debug
         // depth_shower.Show(directional_light);
