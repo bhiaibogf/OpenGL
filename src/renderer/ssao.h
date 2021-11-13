@@ -43,12 +43,14 @@ class Sampler {
 public:
     static std::vector<glm::vec3> GenerateKernel();
 
-    static unsigned int GenerateNoises();
+    static unsigned int GenerateNoiseMap();
 
 private:
     static std::uniform_real_distribution<float> random_float_;
     static std::default_random_engine generator_;
-    static std::vector<glm::vec3> kernel;
+
+    static std::vector<glm::vec3> kernel_;
+
     static unsigned int noise_map_;
 
 };

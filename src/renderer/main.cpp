@@ -282,7 +282,7 @@ int main() {
         // depth_shower.Show(point_lights[0]);
         // depth_shower.Show(g_buffer.get_g_depth());
 
-        // map_shower.Show(Sampler::GenerateNoises());
+        // map_shower.Show(Sampler::GenerateNoiseMap());
         // map_shower.Show(ssao.get_ssao(), 0);
         // map_shower.Show(ssao.get_ssao_blur(), 0);
         // map_shower.Show(g_buffer.get_g_position());
