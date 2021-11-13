@@ -9,6 +9,7 @@ uniform sampler2D gNormalId;
 uniform sampler2D gDepth;
 uniform sampler2D gAlbedo;
 uniform sampler2D gAoMetallicRoughness;
+uniform sampler2D gSsao;
 
 uniform sampler2D gFragPosDirLightSpace;
 uniform sampler2D gFragPosPointLightSpace0;
@@ -42,6 +43,10 @@ uniform SpotLight spot_light;
 
 uniform vec3 camera_pos;
 uniform mat4 uWorldToScreen;
+
+uniform bool uAmbient;
+uniform bool uLo;
+uniform bool uAoMap;
 
 const float PI = 3.14159265359;
 
@@ -214,10 +219,19 @@ vec3 Shading(vec2 uv){
     // ambient lighting (note that the next IBL tutorial will replace
     // this ambient lighting with environment lighting).
     //    float ao = 1.f;
-    float ao = texture(gAoMetallicRoughness, uv).r;
+    float ao = uAoMap ? texture(gAoMetallicRoughness, uv).r : texture(gSsao, uv).r;
     vec3 ambient = vec3(0.03) * albedo * ao;
 
-    return ambient + Lo;
+    vec3 color = vec3(0.0);
+    if (uAmbient){
+        color += ambient;
+    }
+    if (uLo){
+        color += Lo;
+    } else {
+        color *= 10;
+    }
+    return color;
 }
 
 vec2 GetScreenCoordinate(vec3 posWorld) {

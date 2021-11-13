@@ -237,13 +237,13 @@ int main() {
         g_buffer.UnbindLBuffer();
 
         // 3. ssao
-        ssao.get_shader().use();
-        ssao.get_shader().setMat4("uView", transform.get_view());
-        ssao.get_shader().setMat4("uProjection", transform.get_projection());
-        g_buffer.SetGBuffer(ssao.get_shader());
-
-        ssao.Generate();
-        ssao.Blur();
+        // ssao.get_shader().use();
+        // ssao.get_shader().setMat4("uView", transform.get_view());
+        // ssao.get_shader().setMat4("uProjection", transform.get_projection());
+        // g_buffer.SetGBuffer(ssao.get_shader());
+        //
+        // ssao.Generate();
+        // ssao.Blur();
 
         // 4. render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -255,9 +255,13 @@ int main() {
         g_buffer.SetGBuffer(pbr_shader);
         pbr_shader.setVec3("camera_pos", camera.Position);
         pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
-        glActiveTexture(GL_TEXTURE10);
+
+        glActiveTexture(GL_TEXTURE20);
         glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
-        pbr_shader.setInt("gAo", 10);
+        pbr_shader.setInt("gSsao", 20);
+        pbr_shader.setBool("uAmbient", true);
+        pbr_shader.setBool("uLo", true);
+        pbr_shader.setBool("uAoMap", true);
         quad.Draw();
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
