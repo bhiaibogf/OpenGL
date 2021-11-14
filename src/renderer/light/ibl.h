@@ -26,7 +26,7 @@ public:
 
     unsigned int get_irradiance_map() const { return irradiance_map_; }
 
-    // unsigned int get_sky_box() const { return sky_box_map_; }
+    unsigned int get_prefilter_map() const { return prefilter_map_; }
 
 private:
     unsigned int fbo_;
@@ -48,8 +48,9 @@ private:
             glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
     };
 
-    unsigned int prefilterMap;
-    Shader prefilterShader = Shader("2.2.2.cubemap.vs", "2.2.2.prefilter.fs");
+    const static int kPrefilterMapSize = 128;
+    unsigned int prefilter_map_;
+    Shader prefilter_shader_ = Shader("shader/cube_map.vs", "shader/prefilter.fs");
 
     Shader brdfShader = Shader("2.2.2.brdf.vs", "2.2.2.brdf.fs");
 
@@ -57,6 +58,8 @@ private:
     Quad quad_;
 
     void Prt();
+
+    void BindFrameBuffer(unsigned int &map, int size);
 
     void GetIrradianceMap();
 

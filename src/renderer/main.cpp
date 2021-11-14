@@ -287,9 +287,8 @@ int main() {
         }
         // sky_box.Draw(camera);
         // SkyBox(ibl.get_sky_box()).Draw(camera);
-        SkyBox(ibl.get_irradiance_map()).Draw(camera);
-        // SkyBox(ibl.get_sky_box()).Draw(camera);
-        // SkyBox(ibl.get_sky_box()).Draw(camera);
+        // SkyBox(ibl.get_irradiance_map()).Draw(camera);
+        SkyBox(ibl.get_prefilter_map()).Draw(camera);
 
         // 5. debug
         // depth_shower.Show(directional_light);
