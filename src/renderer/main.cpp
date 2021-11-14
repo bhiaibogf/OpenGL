@@ -261,17 +261,24 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         pbr_shader.use();
+
         g_buffer.SetGBuffer(pbr_shader);
-        pbr_shader.setVec3("camera_pos", camera.Position);
-        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
-        pbr_shader.setMat4("uView", transform.get_view());
+
+        ibl.SetIblMap(pbr_shader);
 
         glActiveTexture(GL_TEXTURE20);
         glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
         pbr_shader.setInt("gSsao", 20);
+
+        pbr_shader.setVec3("camera_pos", camera.Position);
+        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
+        pbr_shader.setMat4("uView", transform.get_view());
+
         pbr_shader.setBool("uAmbient", true);
         pbr_shader.setBool("uLo", true);
         pbr_shader.setBool("uAoMap", true);
+        pbr_shader.setBool("uIbl", true);
+
         quad.Draw();
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
@@ -285,7 +292,7 @@ int main() {
         for (auto &point_light: point_lights) {
             point_light.Draw(cube_shader);
         }
-        // sky_box.Draw(camera);
+        sky_box.Draw(camera);
         // SkyBox(ibl.get_sky_box()).Draw(camera);
         // SkyBox(ibl.get_irradiance_map()).Draw(camera);
         // SkyBox(ibl.get_prefilter_map()).Draw(camera);
@@ -295,7 +302,7 @@ int main() {
         // depth_shower.Show(point_lights[0]);
         // depth_shower.Show(g_buffer.get_g_depth());
 
-        map_shower.Show(ibl.get_lut_map());
+        // map_shower.Show(ibl.get_lut_map());
         // map_shower.Show(Sampler::GenerateNoiseMap());
         // map_shower.Show(ssao.get_ssao(), 0);
         // map_shower.Show(ssao.get_ssao_blur(), 0);

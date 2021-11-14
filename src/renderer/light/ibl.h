@@ -30,6 +30,8 @@ public:
 
     unsigned int get_lut_map() const { return brdf_lut_map_; }
 
+    void SetIblMap(Shader &shader);
+
 private:
     unsigned int fbo_;
     unsigned int rbo_;

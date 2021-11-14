@@ -41,12 +41,18 @@ uniform DirectionalLight directional_light;
 uniform PointLight point_light[4];
 uniform SpotLight spot_light;
 
+// IBL
+uniform samplerCube uIrradianceMap;
+uniform samplerCube uPrefilterMap;
+uniform sampler2D uBrdfLutMap;
+
 uniform vec3 camera_pos;
 uniform mat4 uWorldToScreen;
 
 uniform bool uAmbient;
 uniform bool uLo;
 uniform bool uAoMap;
+uniform bool uIbl;
 
 const float PI = 3.14159265359;
 
@@ -126,6 +132,10 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 vec3 CalBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float metallic, vec3 albedo) {
@@ -216,11 +226,30 @@ vec3 Shading(vec2 uv){
 
     Lo += CalBRDF(N, V, L, F0, roughness, metallic, albedo) * radiance;
 
-    // ambient lighting (note that the next IBL tutorial will replace
-    // this ambient lighting with environment lighting).
-    //    float ao = 1.f;
+    vec3 ambient = vec3(0.3) * albedo;
+    if (uIbl){
+        // ambient lighting (we now use IBL as the ambient term)
+        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+
+        vec3 kS = F;
+        vec3 kD = 1.0 - kS;
+        kD *= 1.0 - metallic;
+
+        vec3 irradiance = texture(uIrradianceMap, N).rgb;
+        vec3 diffuse      = irradiance * albedo;
+
+        // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+        const float MAX_REFLECTION_LOD = 4.0;
+        vec3 R = reflect(-V, N);
+        vec3 prefilteredColor = textureLod(uPrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+        vec2 brdf  = texture(uBrdfLutMap, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+        ambient = kD * diffuse + specular;
+    }
+
     float ao = uAoMap ? texture(gAoMetallicRoughness, uv).r : texture(gSsao, uv).r;
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    ambient *= ao;
 
     vec3 color = vec3(0.0);
     if (uAmbient){
@@ -228,8 +257,6 @@ vec3 Shading(vec2 uv){
     }
     if (uLo){
         color += Lo;
-    } else {
-        color *= 10;
     }
     return color;
 }

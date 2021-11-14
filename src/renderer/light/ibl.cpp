@@ -130,3 +130,19 @@ void IBL::GetLut() {
     brdf_shader_.use();
     quad_.Draw();
 }
+
+void IBL::SetIblMap(Shader &shader) {
+    shader.use();
+
+    glActiveTexture(GL_TEXTURE21);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradiance_map_);
+    shader.setInt("uIrradianceMap", 21);
+
+    glActiveTexture(GL_TEXTURE22);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilter_map_);
+    shader.setInt("uPrefilterMap", 22);
+
+    glActiveTexture(GL_TEXTURE23);
+    glBindTexture(GL_TEXTURE_2D, brdf_lut_map_);
+    shader.setInt("uBrdfLutMap", 23);
+}
