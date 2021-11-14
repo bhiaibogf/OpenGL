@@ -28,6 +28,8 @@ public:
 
     unsigned int get_prefilter_map() const { return prefilter_map_; }
 
+    unsigned int get_lut_map() const { return brdf_lut_map_; }
+
 private:
     unsigned int fbo_;
     unsigned int rbo_;
@@ -52,7 +54,9 @@ private:
     unsigned int prefilter_map_;
     Shader prefilter_shader_ = Shader("shader/cube_map.vs", "shader/prefilter.fs");
 
-    Shader brdfShader = Shader("2.2.2.brdf.vs", "2.2.2.brdf.fs");
+    const static int kLutMapSize = 512;
+    unsigned int brdf_lut_map_;
+    Shader brdf_shader_ = Shader("shader/quad.vs", "shader/brdf.fs");
 
     Cube cube_;
     Quad quad_;

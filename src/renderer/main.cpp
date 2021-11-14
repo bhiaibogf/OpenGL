@@ -288,13 +288,14 @@ int main() {
         // sky_box.Draw(camera);
         // SkyBox(ibl.get_sky_box()).Draw(camera);
         // SkyBox(ibl.get_irradiance_map()).Draw(camera);
-        SkyBox(ibl.get_prefilter_map()).Draw(camera);
+        // SkyBox(ibl.get_prefilter_map()).Draw(camera);
 
         // 5. debug
         // depth_shower.Show(directional_light);
         // depth_shower.Show(point_lights[0]);
         // depth_shower.Show(g_buffer.get_g_depth());
 
+        map_shower.Show(ibl.get_lut_map());
         // map_shower.Show(Sampler::GenerateNoiseMap());
         // map_shower.Show(ssao.get_ssao(), 0);
         // map_shower.Show(ssao.get_ssao_blur(), 0);

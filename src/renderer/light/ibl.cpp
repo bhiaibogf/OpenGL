@@ -107,12 +107,11 @@ void IBL::GetPrefilterMap() {
 
 void IBL::GetLut() {
     // pbr: generate a 2D LUT from the BRDF equations used.
-    unsigned int brdfLUTTexture;
-    glGenTextures(1, &brdfLUTTexture);
+    glGenTextures(1, &brdf_lut_map_);
 
     // pre-allocate enough memory for the LUT texture.
-    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    glBindTexture(GL_TEXTURE_2D, brdf_lut_map_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, kLutMapSize, kLutMapSize, 0, GL_RG, GL_FLOAT, 0);
     // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -122,13 +121,12 @@ void IBL::GetLut() {
     // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, kLutMapSize, kLutMapSize);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdf_lut_map_, 0);
 
-    glViewport(0, 0, 512, 512);
-    brdfShader.use();
+    glViewport(0, 0, kLutMapSize, kLutMapSize);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    brdf_shader_.use();
     quad_.Draw();
 }
-
-

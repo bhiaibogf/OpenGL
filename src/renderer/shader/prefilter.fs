@@ -6,7 +6,7 @@ in vec3 vWorldPos;
 uniform samplerCube uEnvironmentMap;
 uniform float uRoughness;
 
-const float PI = 3.14159265359;
+const float kPi = 3.14159265359;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness*roughness;
@@ -16,7 +16,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness) {
 
     float nom   = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
+    denom = kPi * denom * denom;
 
     return nom / denom;
 }
@@ -39,7 +39,7 @@ vec2 Hammersley(uint i, uint cnt) {
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness) {
     float a = roughness*roughness;
 
-    float phi = 2.0 * PI * Xi.x;
+    float phi = 2.0 * kPi * Xi.x;
     float cos_theta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
     float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
 
@@ -87,7 +87,7 @@ void main() {
 
             // resolution of source cubemap (per face)
             float resolution = 512.0;
-            float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
+            float saTexel  = 4.0 * kPi / (6.0 * resolution * resolution);
             float saSample = 1.0 / (float(kSampleCount) * pdf + 0.0001);
 
             float mipmap_level = uRoughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
