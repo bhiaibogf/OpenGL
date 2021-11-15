@@ -9,6 +9,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
+#include <vector>
+
 #include <learnopengl/shader.h>
 
 #include "../model/cube.h"
@@ -19,7 +21,7 @@ public:
 
     ~CubeMapCreator();
 
-    unsigned int ConvertFromSkyBox();
+    unsigned int ConvertFromSkyBox(const std::string& path);
 
     unsigned int ConvertFromEquirectangularMap(std::string path);
 
@@ -28,6 +30,8 @@ private:
     unsigned int fbo_;
     unsigned int depth_rbo_;
     unsigned int map_;
+
+    const std::vector<std::string> kFaces{"right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"};
 
     Shader shader_ = Shader("shader/cube_map.vs", "shader/equirectangular_to_cube_map.fs");
 

@@ -16,13 +16,13 @@
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
+#include "light/sky_box.h"
 #include "light/ibl.h"
 #include "utils/depth_shower.h"
 #include "utils/map_shower.h"
 #include "transform.h"
 #include "g_buffer.h"
 #include "ssao.h"
-#include "light/sky_box.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -145,6 +145,7 @@ int main() {
     path = FileSystem::getPath("resources/textures/hdr/newport_loft.hdr");
     IBL ibl(path);
     SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
+    SkyBox sky(CubeMapCreator().ConvertFromSkyBox(FileSystem::getPath("resources/textures/skybox/")));
 
 
     // g_buffer
@@ -294,6 +295,7 @@ int main() {
             point_light.Draw(cube_shader);
         }
         sky_box.Draw(camera);
+        // sky.Draw(camera);
         // SkyBox(ibl.get_sky_box()).Draw(camera);
         // SkyBox(ibl.get_irradiance_map()).Draw(camera);
         // SkyBox(ibl.get_prefilter_map()).Draw(camera);

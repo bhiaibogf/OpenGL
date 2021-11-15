@@ -6,21 +6,9 @@
 
 
 CubeMapCreator::CubeMapCreator() {
-    glGenFramebuffers(1, &fbo_);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-
-    glGenRenderbuffers(1, &depth_rbo_);
-    glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, kCaptureSize, kCaptureSize);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo_);
-
-    // pbr: setup cube map to render to and attach to framebuffer
     glGenTextures(1, &map_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, map_);
-    for (unsigned int i = 0; i < 6; ++i) {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, kCaptureSize, kCaptureSize, 0, GL_RGB, GL_FLOAT,
-                     nullptr);
-    }
+
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -32,14 +20,41 @@ CubeMapCreator::~CubeMapCreator() {
 
 }
 
-unsigned int CubeMapCreator::ConvertFromSkyBox() {
-    return 0;
+unsigned int CubeMapCreator::ConvertFromSkyBox(const std::string &path) {
+    stbi_set_flip_vertically_on_load(false);
+    int width, height, channel;
+    for (int i = 0; i < kFaces.size(); i++) {
+        unsigned char *data = stbi_load((path + kFaces[i]).c_str(), &width, &height, &channel, 0);
+        if (data) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                         data);
+            stbi_image_free(data);
+        } else {
+            std::cout << "Cubemap texture failed to load at path: " << (path + kFaces[i]).c_str() << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    return map_;
 }
 
 unsigned int CubeMapCreator::ConvertFromEquirectangularMap(std::string path) {
+    glGenFramebuffers(1, &fbo_);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+
+    glGenRenderbuffers(1, &depth_rbo_);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo_);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, kCaptureSize, kCaptureSize);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo_);
+
+    for (int i = 0; i < 6; i++) {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, kCaptureSize, kCaptureSize, 0, GL_RGB, GL_FLOAT,
+                     nullptr);
+    }
+
     stbi_set_flip_vertically_on_load(true);
-    int width, height, components;
-    float *data = stbi_loadf(path.c_str(), &width, &height, &components, 0);
+    int width, height, channel;
+    float *data = stbi_loadf(path.c_str(), &width, &height, &channel, 0);
     unsigned int hdr_texture;
     if (data) {
         glGenTextures(1, &hdr_texture);
