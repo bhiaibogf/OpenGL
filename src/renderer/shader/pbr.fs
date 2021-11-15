@@ -52,6 +52,7 @@ uniform mat4 uWorldToScreen;
 uniform bool uAmbient;
 uniform bool uLo;
 uniform bool uAoMap;
+uniform bool uAo;
 uniform bool uIbl;
 
 const float PI = 3.14159265359;
@@ -248,7 +249,11 @@ vec3 Shading(vec2 uv){
         ambient = kD * diffuse + specular;
     }
 
-    float ao = uAoMap ? texture(gAoMetallicRoughness, uv).r : texture(gSsao, uv).r;
+    float ao = 1.0;
+    if (uAo){
+        ao = uAoMap ? texture(gAoMetallicRoughness, uv).r : texture(gSsao, uv).r;
+    }
+
     ambient *= ao;
 
     vec3 color = vec3(0.0);

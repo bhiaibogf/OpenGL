@@ -276,6 +276,7 @@ int main() {
 
         pbr_shader.setBool("uAmbient", true);
         pbr_shader.setBool("uLo", true);
+        pbr_shader.setBool("uAo", true);
         pbr_shader.setBool("uAoMap", true);
         pbr_shader.setBool("uIbl", true);
 
