@@ -24,9 +24,9 @@ target_link_libraries(GLAD dl)
 
 add_library(STB_IMAGE "src/stb_image.cpp")
 
-file(GLOB LEARN_SRC "src/LearnOpenGL/*.cpp")
-add_executable(LearnOpenGL ${LEARN_SRC})
-target_link_libraries(LearnOpenGL ${LIBS} GLAD STB_IMAGE)
+#file(GLOB LEARN_SRC "src/LearnOpenGL/*.cpp")
+#add_executable(LearnOpenGL ${LEARN_SRC})
+#target_link_libraries(LearnOpenGL ${LIBS} GLAD STB_IMAGE)
 
 file(GLOB SRC
         "src/renderer/light/*.cpp"
