@@ -45,7 +45,6 @@ const unsigned int kScrHeight = 600;
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
 float lastX = kScrWidth / 2.0f;
 float lastY = kScrHeight / 2.0f;
-bool firstMouse = true;
 
 // timing
 float delta_time = 0.0f;
@@ -140,7 +139,7 @@ int main() {
             PointLight(glm::vec3(1000.f), glm::vec3(-5.0f, 30.0f, -30.f))
     };
     // spotlight
-    SpotLight spot_light(glm::vec3(0.0f), camera.Position, camera.Front,
+    SpotLight spot_light(glm::vec3(0.0f), camera.get_position(), camera.get_front(),
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     path = FileSystem::getPath("resources/textures/hdr/newport_loft.hdr");
     IBL ibl(path);
@@ -171,10 +170,10 @@ int main() {
         processInput(window);
 
         // transformations
-        auto x_translate = glm::translate(glm::mat4(1.f), camera.getRight() * x_off * 0.01f);
-        auto y_translate = glm::translate(glm::mat4(1.f), camera.getWorldUp() * y_off * 0.01f);
-        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.getWorldUp());
-        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.getRight());
+        auto x_translate = glm::translate(glm::mat4(1.f), camera.get_right() * x_off * 0.01f);
+        auto y_translate = glm::translate(glm::mat4(1.f), camera.get_world_up() * y_off * 0.01f);
+        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.get_world_up());
+        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.get_right());
         transform.Update(y_rotate * x_rotate * y_translate * x_translate);
 
         transform.set_view(camera.GetViewMatrix());
@@ -271,7 +270,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
         pbr_shader.setInt("gSsao", 20);
 
-        pbr_shader.setVec3("camera_pos", camera.Position);
+        pbr_shader.setVec3("camera_pos", camera.get_position());
         pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
         pbr_shader.setMat4("uView", transform.get_view());
 
@@ -340,13 +339,13 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, delta_time);
+        camera.ProcessKeyboard(Camera::kForward, delta_time);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, delta_time);
+        camera.ProcessKeyboard(Camera::kBackward, delta_time);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, delta_time);
+        camera.ProcessKeyboard(Camera::kLeft, delta_time);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, delta_time);
+        camera.ProcessKeyboard(Camera::kRight, delta_time);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
