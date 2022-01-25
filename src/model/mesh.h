@@ -1,12 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <glad/glad.h> // holds all OpenGL type declarations
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "shader.h"
+#include "base_model.h"
 
 #include <string>
 #include <vector>
@@ -38,7 +33,7 @@ struct Texture {
     string path;
 };
 
-class Mesh {
+class Mesh : public BaseModel {
 public:
     // mesh Data
     vector<Vertex> vertices;
@@ -57,7 +52,7 @@ public:
     }
 
     // render the mesh
-    void Draw(Shader &shader) {
+    void Draw() const override {
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);

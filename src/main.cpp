@@ -10,7 +10,7 @@
 #include "camera/transform.h"
 #include "camera/camera.h"
 
-#include "utils/model.h"
+#include "model/scene.h"
 #include "utils/shader.h"
 
 #include "renderer/g_buffer.h"
@@ -46,17 +46,18 @@ int main() {
 
     // load models
     string path = "asset/objects/nb574/";
-    Model my_model(path + "nb574.obj");
+    Scene my_model(path + "nb574.obj");
+    my_model.Rotate(270.f, {1.0, 0.0, 0.0});
 
     Quad floor;
     floor.Scale(glm::vec3(10.f));
+    floor.Translate({0, 0, 1.9});
     floor.Rotate(90, {1.0, 0.0, 0.0});
-    floor.Translate({0, 0, 0.19});
 
     Quad mirror;
     mirror.Scale(glm::vec3(2.f));
+    mirror.Translate({0, -4, 0});
     mirror.Rotate(45 + 180, {1.0, 0.0, 0.0});
-    mirror.Translate({0, -2, 0});
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     // stbi_set_flip_vertically_on_load(true);
@@ -96,8 +97,6 @@ int main() {
     MapShower map_shower;
 
     Transform transform;
-    transform.Rotate(270.f, glm::vec3(1.0, 0.0, 0.0));
-    transform.Update();
 
     // render loop
     while (!WindowsHandler::ShouldClose()) {
@@ -108,11 +107,14 @@ int main() {
         WindowsHandler::ProcessInput();
 
         // transformations
-        auto x_translate = glm::translate(glm::mat4(1.f), camera.right() * WindowsHandler::offset_x() * 0.01f);
-        auto y_translate = glm::translate(glm::mat4(1.f), camera.world_up() * WindowsHandler::offset_y() * 0.01f);
-        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::yaw()), camera.world_up());
-        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::pitch()), camera.right());
-        transform.Update(y_rotate * x_rotate * y_translate * x_translate);
+        // x_translate
+        my_model.Translate(camera.right() * WindowsHandler::offset_x() * 0.01f);
+        // y_translate
+        my_model.Translate(camera.world_up() * WindowsHandler::offset_y() * 0.01f);
+        // x_rotate
+        my_model.Rotate(WindowsHandler::yaw(), camera.world_up());
+        // y_rotate
+        my_model.Rotate(WindowsHandler::pitch(), camera.right());
 
         WindowsHandler::Clear();
 
@@ -144,7 +146,6 @@ int main() {
         glViewport(0, 0, kScrWidth, kScrHeight);
 
         g_buffer.BindGBuffer();
-        g_buffer.get_g_shader().setMat4("uModel", transform.get_model());
         g_buffer.get_g_shader().setMat4("uView", transform.get_view());
         g_buffer.get_g_shader().setMat4("uProjection", transform.get_projection());
 
@@ -169,7 +170,6 @@ int main() {
 
         g_buffer.BindLBuffer();
 
-        g_buffer.get_l_shader().setMat4("uModel", transform.get_model());
         g_buffer.get_l_shader().setMat4("uView", transform.get_view());
         g_buffer.get_l_shader().setMat4("uProjection", transform.get_projection());
 

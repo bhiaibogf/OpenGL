@@ -1,16 +1,13 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include "mesh.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <stb/stb_image.h>
 
-#include "shader.h"
-#include "mesh.h"
+#include "stb/stb_image.h"
 
 #include <string>
 #include <fstream>
@@ -23,7 +20,7 @@ using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
-class Model {
+class Scene : public BaseModel {
 public:
     // model data 
     vector<Texture> textures_loaded;    // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
@@ -32,14 +29,19 @@ public:
     bool gammaCorrection;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
+    Scene(string const &path, bool gamma = false) : gammaCorrection(gamma) {
         loadModel(path);
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader &shader) {
+    void Draw() const override {
         for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+            meshes[i].Draw();
+    }
+
+    void Draw(const Shader &shader) const override {
+        BaseModel::Draw(shader);
+        Draw();
     }
 
 private:

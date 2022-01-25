@@ -16,15 +16,15 @@ BaseModel::~BaseModel() {
 }
 
 void BaseModel::Rotate(float degrees, glm::vec3 v) {
-    model_ = glm::rotate(model_, glm::radians(degrees), v);
+    model_ = glm::rotate(glm::mat4(1.f), glm::radians(degrees), v) * model_;
 }
 
 void BaseModel::Scale(glm::vec3 v) {
-    model_ = glm::scale(model_, v);
+    model_ = glm::scale(glm::mat4(1.f), v) * model_;
 }
 
 void BaseModel::Translate(glm::vec3 v) {
-    model_ = glm::translate(model_, v);
+    model_ = glm::translate(glm::mat4(1.f), v) * model_;
 }
 
 void BaseModel::Draw(const Shader &shader) const {
