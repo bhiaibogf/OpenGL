@@ -22,7 +22,12 @@ Cube::Cube() {
     glBindVertexArray(0);
 }
 
-void Cube::Draw() {
+void Cube::Draw(const Shader &shader) const {
+    BaseModel::Draw(shader);
+    Draw();
+}
+
+void Cube::Draw() const {
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);

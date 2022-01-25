@@ -49,18 +49,14 @@ int main() {
     Model my_model(path + "nb574.obj");
 
     Quad floor;
-    Transform transform_floor;
-    transform_floor.Scale(glm::vec3(10.f));
-    transform_floor.Rotate(90, glm::vec3(1.0, 0.0, 0.0));
-    transform_floor.Translate(glm::vec3(0, 0, 0.19));
-    transform_floor.Update();
+    floor.Scale(glm::vec3(10.f));
+    floor.Rotate(90, {1.0, 0.0, 0.0});
+    floor.Translate({0, 0, 0.19});
 
     Quad mirror;
-    Transform transform_mirror;
-    transform_mirror.Scale(glm::vec3(2.f));
-    transform_mirror.Rotate(45 + 180, glm::vec3(1.0, 0.0, 0.0));
-    transform_mirror.Translate(glm::vec3(0, -2, 0));
-    transform_mirror.Update();
+    mirror.Scale(glm::vec3(2.f));
+    mirror.Rotate(45 + 180, {1.0, 0.0, 0.0});
+    mirror.Translate({0, -2, 0});
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     // stbi_set_flip_vertically_on_load(true);
@@ -165,13 +161,11 @@ int main() {
         g_buffer.get_g_shader().setInt("uId", 1);
         my_model.Draw(g_buffer.get_g_shader());
 
-        g_buffer.get_g_shader().setMat4("uModel", transform_floor.get_model());
         g_buffer.get_g_shader().setInt("uId", 2);
-        floor.Draw();
+        floor.Draw(g_buffer.get_g_shader());
 
-        g_buffer.get_g_shader().setMat4("uModel", transform_mirror.get_model());
         g_buffer.get_g_shader().setInt("uId", 3);
-        mirror.Draw();
+        mirror.Draw(g_buffer.get_g_shader());
 
         g_buffer.BindLBuffer();
 
@@ -181,11 +175,9 @@ int main() {
 
         my_model.Draw(g_buffer.get_l_shader());
 
-        g_buffer.get_l_shader().setMat4("uModel", transform_floor.get_model());
-        floor.Draw();
+        floor.Draw(g_buffer.get_l_shader());
 
-        g_buffer.get_l_shader().setMat4("uModel", transform_mirror.get_model());
-        mirror.Draw();
+        mirror.Draw(g_buffer.get_l_shader());
 
         g_buffer.UnbindLBuffer();
 

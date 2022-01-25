@@ -5,9 +5,12 @@
 #ifndef SKETCHFAB_BASE_MODEL_H
 #define SKETCHFAB_BASE_MODEL_H
 
-#include <glad/glad.h>
 
 #include "../utils/shader.h"
+
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class BaseModel {
 public:
@@ -15,11 +18,20 @@ public:
 
     ~BaseModel();
 
-    virtual void Draw() = 0;
+    void Rotate(float degrees, glm::vec3 v);
+
+    void Scale(glm::vec3 v);
+
+    void Translate(glm::vec3 v);
+
+    virtual void Draw() const = 0;
+
+    virtual void Draw(const Shader &shader) const;
 
 protected:
     unsigned int vao_;
     unsigned int vbo_;
+    glm::mat4 model_;
 
 };
 

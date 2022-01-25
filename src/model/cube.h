@@ -13,7 +13,9 @@ public:
 
     ~Cube() = default;
 
-    void Draw() override;
+    void Draw() const override;
+
+    void Draw(const Shader &shader) const override;
 
 private:
     constexpr static const float kVertices[] = {
