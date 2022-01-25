@@ -31,5 +31,5 @@ void Transform::Update() {
 }
 
 void Transform::Update(glm::mat4 transform) {
-    model_transform_ = transform * model_;
+    model_transform_ = transform * model_transform_;
 }

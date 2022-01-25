@@ -174,6 +174,10 @@ int main() {
         auto y_translate = glm::translate(glm::mat4(1.f), camera.get_world_up() * y_off * 0.01f);
         auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.get_world_up());
         auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.get_right());
+        x_off = 0;
+        y_off = 0;
+        yaw = 0;
+        pitch = 0;
         transform.Update(y_rotate * x_rotate * y_translate * x_translate);
 
         transform.set_view(camera.GetViewMatrix());
@@ -404,12 +408,16 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     lastY = ypos;
 
     if (left_button_down) {
-        yaw += x_offset;
-        pitch -= y_offset;
+        // yaw += x_offset;
+        // pitch -= y_offset;
+        yaw = x_offset;
+        pitch = -y_offset;
     }
     if (right_button_down) {
-        x_off += x_offset;
-        y_off += y_offset;
+        // x_off += x_offset;
+        // y_off += y_offset;
+        x_off = x_offset;
+        y_off = y_offset;
     }
     if (middle_button_down) {
         camera.ProcessMouseMovement(x_offset, y_offset);
