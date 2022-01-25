@@ -123,7 +123,6 @@ int main() {
 
         // 1. depth
         depth_shader.use();
-        depth_shader.setMat4("model", transform.get_model());
 
         directional_light.SetDepthShader(depth_shader);
         my_model.Draw(depth_shader);
