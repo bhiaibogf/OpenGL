@@ -7,7 +7,6 @@
 #include "shower/depth_shower.h"
 #include "shower/map_shower.h"
 
-#include "camera/transform.h"
 #include "camera/camera.h"
 
 #include "model/scene.h"
@@ -96,8 +95,6 @@ int main() {
     DepthShower depth_shower;
     MapShower map_shower;
 
-    Transform transform;
-
     // render loop
     while (!WindowsHandler::ShouldClose()) {
         // per-frame time logic
@@ -117,9 +114,6 @@ int main() {
         my_model.Rotate(WindowsHandler::pitch(), camera.right());
 
         WindowsHandler::Clear();
-
-        transform.set_view(camera.GetViewMatrix());
-        transform.set_projection(camera.GetProjectionMatrix());
 
         // 1. depth
         depth_shader.use();
@@ -145,8 +139,7 @@ int main() {
         glViewport(0, 0, kScrWidth, kScrHeight);
 
         g_buffer.BindGBuffer();
-        g_buffer.get_g_shader().setMat4("uView", transform.get_view());
-        g_buffer.get_g_shader().setMat4("uProjection", transform.get_projection());
+        camera.SetShader(g_buffer.get_g_shader());
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo_map);
@@ -169,8 +162,7 @@ int main() {
 
         g_buffer.BindLBuffer();
 
-        g_buffer.get_l_shader().setMat4("uView", transform.get_view());
-        g_buffer.get_l_shader().setMat4("uProjection", transform.get_projection());
+        camera.SetShader(g_buffer.get_l_shader());
 
         my_model.Draw(g_buffer.get_l_shader());
 
@@ -182,8 +174,7 @@ int main() {
 
         // 3. ssao
         ssao.get_shader().use();
-        ssao.get_shader().setMat4("uView", transform.get_view());
-        ssao.get_shader().setMat4("uProjection", transform.get_projection());
+        camera.SetShader(ssao.get_shader());
         g_buffer.SetGBuffer(ssao.get_shader());
 
         ssao.Generate();
@@ -206,8 +197,7 @@ int main() {
         pbr_shader.setInt("gSsao", 20);
 
         pbr_shader.setVec3("camera_pos", camera.position());
-        pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
-        pbr_shader.setMat4("uView", transform.get_view());
+        camera.SetShader(pbr_shader);
 
         pbr_shader.setBool("uAmbient", true);
         pbr_shader.setBool("uLo", true);
@@ -223,8 +213,7 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         cube_shader.use();
-        cube_shader.setMat4("view", transform.get_view());
-        cube_shader.setMat4("projection", transform.get_projection());
+        camera.SetShader(cube_shader);
         for (auto &point_light: point_lights) {
             point_light.Draw(cube_shader);
         }

@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vector>
+#include "../utils/shader.h"
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera {
@@ -39,14 +40,11 @@ public:
 
     auto &world_up() const { return world_up_; }
 
-    // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix() const {
-        return glm::lookAt(position_, position_ + front_, up_);
-    }
+    auto &view() const { return view_; }
 
-    glm::mat4 GetProjectionMatrix() const {
-        return glm::perspective(glm::radians(zoom_), (float) kScrWidth / (float) kScrHeight, 0.1f, 20.0f);
-    }
+    auto &projection() const { return projection_; }
+
+    void SetShader(const Shader &shader) const;
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
@@ -74,6 +72,9 @@ private:
     glm::vec3 world_up_;
     glm::vec3 front_, up_, right_;
 
+    glm::mat4 view_;
+    glm::mat4 projection_;
+
     // euler Angles
     float yaw_;
     float pitch_;
@@ -82,6 +83,11 @@ private:
     float zoom_;
     float movement_speed_;
     float mouse_sensitivity_;
+
+    // returns the view matrix calculated using Euler Angles and the LookAt Matrix
+    auto GetViewMatrix() const;
+
+    auto GetProjectionMatrix() const;
 
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();

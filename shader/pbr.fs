@@ -47,7 +47,8 @@ uniform samplerCube uPrefilterMap;
 uniform sampler2D uBrdfLutMap;
 
 uniform vec3 camera_pos;
-uniform mat4 uWorldToScreen;
+uniform mat4 uView;
+uniform mat4 uProjection;
 
 uniform bool uAmbient;
 uniform bool uLo;
@@ -267,11 +268,9 @@ vec3 Shading(vec2 uv){
 }
 
 vec2 GetScreenCoordinate(vec3 posWorld) {
-    vec2 uv = Project(uWorldToScreen * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
+    vec2 uv = Project(uProjection * uView * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
     return uv;
 }
-
-uniform mat4 uView;
 
 float GetDepth(vec3 posWorld) {
     float depth = Project(uView * vec4(posWorld, 1.0)).z;

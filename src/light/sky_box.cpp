@@ -11,9 +11,7 @@ SkyBox::SkyBox(unsigned int map) : map_(map) {
 void SkyBox::Draw(Camera &camera) {
     // render skybox (render as last to prevent overdraw)
     shader_.use();
-
-    shader_.setMat4("uView", camera.GetViewMatrix());
-    shader_.setMat4("uProjection", camera.GetProjectionMatrix());
+    camera.SetShader(shader_);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, map_);

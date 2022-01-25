@@ -18,18 +18,6 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     UpdateCameraVectors();
 }
 
-void Camera::UpdateCameraVectors() {
-    // calculate the new Front vector
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-    front.y = sin(glm::radians(pitch_));
-    front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-
-    front_ = glm::normalize(front);
-    right_ = glm::normalize(glm::cross(front_, world_up_));
-    up_ = glm::normalize(glm::cross(right_, front_));
-}
-
 void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime) {
     float velocity = movement_speed_ * deltaTime;
     if (direction == kForward)
@@ -68,4 +56,32 @@ void Camera::ProcessMouseScroll(float yoffset) {
         zoom_ = 1.0f;
     if (zoom_ > 90.0f)
         zoom_ = 90.0f;
+}
+
+auto Camera::GetViewMatrix() const {
+    return glm::lookAt(position_, position_ + front_, up_);
+}
+
+auto Camera::GetProjectionMatrix() const {
+    return glm::perspective(glm::radians(zoom_), (float) kScrWidth / (float) kScrHeight, 0.1f, 20.0f);
+}
+
+void Camera::UpdateCameraVectors() {
+    // calculate the new Front vector
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+    front.y = sin(glm::radians(pitch_));
+    front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+
+    front_ = glm::normalize(front);
+    right_ = glm::normalize(glm::cross(front_, world_up_));
+    up_ = glm::normalize(glm::cross(right_, front_));
+
+    view_ = GetViewMatrix();
+    projection_ = GetProjectionMatrix();
+}
+
+void Camera::SetShader(const Shader &shader) const {
+    shader.setMat4("uView", view_);
+    shader.setMat4("uProjection", projection_);
 }
