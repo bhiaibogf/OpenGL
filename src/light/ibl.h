@@ -7,10 +7,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <stb/stb_image.h>
 
-#include <stb_image.h>
-
-#include <learnopengl/shader.h>
+#include "../utils/shader.h"
 
 #include "../model/cube.h"
 #include "../model/quad.h"

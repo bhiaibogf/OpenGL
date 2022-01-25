@@ -3,26 +3,23 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader.h>
 
 #include <iostream>
 
-#include "model.h"
-#include "camera.h"
+#include "utils/model.h"
+#include "camera/camera.h"
+#include "utils/shader.h"
 
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
 #include "light/sky_box.h"
 #include "light/ibl.h"
-#include "utils/depth_shower.h"
-#include "utils/map_shower.h"
-#include "transform.h"
-#include "g_buffer.h"
-#include "ssao.h"
+#include "shower/depth_shower.h"
+#include "shower/map_shower.h"
+#include "camera/transform.h"
+#include "renderer/g_buffer.h"
+#include "renderer/ssao.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -103,7 +100,7 @@ int main() {
 
     // load models
     string path = "asset/nb574/";
-    Model my_model(FileSystem::getPath(path + "nb574.obj"));
+    Model my_model(path + "nb574.obj");
 
     Quad floor;
     Transform transform_floor;
@@ -119,9 +116,9 @@ int main() {
     transform_mirror.Translate(glm::vec3(0, -2, 0));
     transform_mirror.Update();
 
-    auto albedo_map = TextureFromFile("nb574.jpg", FileSystem::getPath(path), false);
-    auto normal_map = TextureFromFile("normals.jpg", FileSystem::getPath(path), false);
-    auto ao_map = TextureFromFile("occlusion.jpg", FileSystem::getPath(path), false);
+    auto albedo_map = TextureFromFile("nb574.jpg", path, false);
+    auto normal_map = TextureFromFile("normals.jpg", path, false);
+    auto ao_map = TextureFromFile("occlusion.jpg", path, false);
 
     SSAO ssao(kScrWidth, kScrHeight);
 
@@ -141,10 +138,10 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.get_position(), camera.get_front(),
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-    path = FileSystem::getPath("resources/textures/hdr/newport_loft.hdr");
+    path = "resources/textures/hdr/newport_loft.hdr";
     IBL ibl(path);
     SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
-    SkyBox sky(CubeMapCreator().ConvertFromSkyBox(FileSystem::getPath("resources/textures/skybox/")));
+    SkyBox sky(CubeMapCreator().ConvertFromSkyBox("resources/textures/skybox/"));
 
 
     // g_buffer

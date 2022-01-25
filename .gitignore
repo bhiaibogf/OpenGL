@@ -32,12 +32,9 @@
 *.out
 *.app
 
-.idea/
+/.idea/
 
-cmake-build-debug/
-cmake-build-release/
+/cmake-build-*/
 
-asset/
-resources/
-
-src/renderer/test/
+/asset/
+/resources/

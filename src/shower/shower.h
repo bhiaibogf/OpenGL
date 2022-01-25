@@ -5,7 +5,7 @@
 #ifndef SKETCHFAB_SHOWER_H
 #define SKETCHFAB_SHOWER_H
 
-#include <learnopengl/shader.h>
+#include "../utils/shader.h"
 
 #include "../model/quad.h"
 

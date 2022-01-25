@@ -7,9 +7,9 @@
 
 #include <random>
 
-#include <learnopengl/shader.h>
+#include "../utils/shader.h"
 
-#include "model/quad.h"
+#include "../model/quad.h"
 
 class SSAO {
 public:

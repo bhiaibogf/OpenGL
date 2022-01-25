@@ -7,7 +7,7 @@
 
 #include <glad/glad.h>
 
-#include <learnopengl/shader.h>
+#include "../utils/shader.h"
 
 class BaseModel {
 public:

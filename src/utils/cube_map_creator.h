@@ -7,11 +7,11 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <stb_image.h>
+#include <stb/stb_image.h>
 
 #include <vector>
 
-#include <learnopengl/shader.h>
+#include "shader.h"
 
 #include "../model/cube.h"
 
@@ -21,7 +21,7 @@ public:
 
     ~CubeMapCreator();
 
-    unsigned int ConvertFromSkyBox(const std::string& path);
+    unsigned int ConvertFromSkyBox(const std::string &path);
 
     unsigned int ConvertFromEquirectangularMap(std::string path);
 

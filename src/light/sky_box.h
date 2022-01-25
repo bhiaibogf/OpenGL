@@ -5,8 +5,8 @@
 #ifndef SKETCHFAB_SKY_BOX_H
 #define SKETCHFAB_SKY_BOX_H
 
-#include "../camera.h"
-#include <learnopengl/shader.h>
+#include "../camera/camera.h"
+#include "../utils/shader.h"
 
 #include "../model/cube.h"
 

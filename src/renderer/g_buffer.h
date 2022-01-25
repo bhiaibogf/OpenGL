@@ -5,7 +5,7 @@
 #ifndef SKETCHFAB_G_BUFFER_H
 #define SKETCHFAB_G_BUFFER_H
 
-#include <learnopengl/shader.h>
+#include "../utils/shader.h"
 
 class GBuffer {
 public:

@@ -19,26 +19,13 @@ set(LIBS ${LIBS} ${ASSIMP_LIBRARIES})
 
 #message(${LIBS})
 
-add_library(GLAD src/glad.c)
+add_library(GLAD third_party/glad/glad.c)
 target_link_libraries(GLAD dl)
 
-add_library(STB_IMAGE "src/stb_image.cpp")
+add_library(STB_IMAGE "third_party/stb/stb_image.cpp")
 
-#file(GLOB LEARN_SRC "src/LearnOpenGL/*.cpp")
-#add_executable(LearnOpenGL ${LEARN_SRC})
-#target_link_libraries(LearnOpenGL ${LIBS} GLAD STB_IMAGE)
-
-file(GLOB SRC
-        "src/renderer/light/*.cpp"
-        "src/renderer/model/*.cpp"
-        "src/renderer/utils/*.cpp"
-        "src/renderer/*.cpp"
-        )
+file(GLOB_RECURSE SRC src/*.cpp)
 add_executable(sketchfab ${SRC})
 target_link_libraries(sketchfab ${LIBS} GLAD STB_IMAGE)
 
-file(GLOB TEST_SRC "src/renderer/test/*.cpp")
-add_executable(test ${SRC})
-target_link_libraries(test ${LIBS} GLAD STB_IMAGE)
-
-include_directories(./includes)
+include_directories(./third_party)
