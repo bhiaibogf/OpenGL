@@ -10,6 +10,6 @@ BaseModel::BaseModel() {
 }
 
 BaseModel::~BaseModel() {
-    glDeleteVertexArrays(1, &vao_);
-    glDeleteBuffers(1, &vbo_);
+    // glDeleteVertexArrays(1, &vao_);
+    // glDeleteBuffers(1, &vbo_);
 }

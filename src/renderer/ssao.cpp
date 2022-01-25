@@ -29,10 +29,10 @@ SSAO::SSAO(unsigned int width, unsigned int height) : width_(width), height_(hei
 }
 
 SSAO::~SSAO() {
-    glDeleteFramebuffers(1, &ssao_fbo_);
-    glDeleteTextures(1, &ssao_map_);
-    glDeleteFramebuffers(1, &blur_fbo_);
-    glDeleteTextures(1, &blur_map_);
+    // glDeleteFramebuffers(1, &ssao_fbo_);
+    // glDeleteTextures(1, &ssao_map_);
+    // glDeleteFramebuffers(1, &blur_fbo_);
+    // glDeleteTextures(1, &blur_map_);
 }
 
 void SSAO::Generate() {
