@@ -1,38 +1,27 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <iostream>
-
-#include "utils/model.h"
-#include "camera/camera.h"
-#include "utils/shader.h"
-
 #include "light/directional_light.h"
 #include "light/point_light.h"
 #include "light/spot_light.h"
 #include "light/sky_box.h"
 #include "light/ibl.h"
+
 #include "shower/depth_shower.h"
 #include "shower/map_shower.h"
+
 #include "camera/transform.h"
+#include "camera/camera.h"
+
+#include "utils/model.h"
+#include "utils/shader.h"
+
 #include "renderer/g_buffer.h"
 #include "renderer/ssao.h"
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+#include "windows/windows_handler.h"
 
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-void mouse_click_callback(GLFWwindow *window, int button, int action, int mods);
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
-void processInput(GLFWwindow *window);
-
-float yaw = 0.f, pitch = 0.f;
-float x_off = 0.f, y_off = 0.f;
+#include <iostream>
 
 // settings
 const unsigned int kScrWidth = 800;
@@ -40,52 +29,9 @@ const unsigned int kScrHeight = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
-float lastX = kScrWidth / 2.0f;
-float lastY = kScrHeight / 2.0f;
-
-// timing
-float delta_time = 0.0f;
-float last_frame = 0.0f;
-
-GLFWwindow *Init() {
-    // glfw: initialize and configure
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // glfw window creation
-    GLFWwindow *window = glfwCreateWindow(kScrWidth, kScrHeight, "sketchfab", nullptr, nullptr);
-    if (!window) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_click_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    // glad: load all OpenGL function pointers
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return nullptr;
-    }
-
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    // stbi_set_flip_vertically_on_load(true);
-
-    return window;
-}
+[[maybe_unused]] WindowsHandler windows_handler(kScrWidth, kScrHeight, &camera);
 
 int main() {
-    GLFWwindow *window = Init();
-
     // configure global opengl state
     glEnable(GL_DEPTH_TEST);
     // set depth function to less than AND equal for skybox depth trick.
@@ -116,6 +62,8 @@ int main() {
     transform_mirror.Translate(glm::vec3(0, -2, 0));
     transform_mirror.Update();
 
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    // stbi_set_flip_vertically_on_load(true);
     auto albedo_map = TextureFromFile("nb574.jpg", path, false);
     auto normal_map = TextureFromFile("normals.jpg", path, false);
     auto ao_map = TextureFromFile("occlusion.jpg", path, false);
@@ -157,25 +105,21 @@ int main() {
     transform.Update();
 
     // render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!WindowsHandler::ShouldClose()) {
         // per-frame time logic
-        float current_frame = glfwGetTime();
-        delta_time = current_frame - last_frame;
-        last_frame = current_frame;
+        WindowsHandler::UpdateTime();
 
         // input
-        processInput(window);
+        WindowsHandler::ProcessInput();
 
         // transformations
-        auto x_translate = glm::translate(glm::mat4(1.f), camera.get_right() * x_off * 0.01f);
-        auto y_translate = glm::translate(glm::mat4(1.f), camera.get_world_up() * y_off * 0.01f);
-        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(yaw), camera.get_world_up());
-        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(pitch), camera.get_right());
-        x_off = 0;
-        y_off = 0;
-        yaw = 0;
-        pitch = 0;
+        auto x_translate = glm::translate(glm::mat4(1.f), camera.get_right() * WindowsHandler::offset_x() * 0.01f);
+        auto y_translate = glm::translate(glm::mat4(1.f), camera.get_world_up() * WindowsHandler::offset_y() * 0.01f);
+        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::yaw()), camera.get_world_up());
+        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::pitch()), camera.get_right());
         transform.Update(y_rotate * x_rotate * y_translate * x_translate);
+
+        WindowsHandler::Clear();
 
         transform.set_view(camera.GetViewMatrix());
         transform.set_projection(camera.GetProjectionMatrix());
@@ -323,106 +267,7 @@ int main() {
         // map_shower.Show(g_buffer.get_g_pos_point_light()[2]);
         // map_shower.Show(g_buffer.get_g_pos_point_light()[3]);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        WindowsHandler::SwapBuffer();
     }
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    glfwTerminate();
     return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::kForward, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::kBackward, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::kLeft, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::kRight, delta_time);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
-
-bool left_button_down = false, right_button_down = false, middle_button_down = false;
-
-void mouse_click_callback(GLFWwindow *window, int button, int action, int mods) {
-    double xpos;
-    double ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-
-    switch (button) {
-        case GLFW_MOUSE_BUTTON_LEFT:
-            if (GLFW_PRESS == action) {
-                left_button_down = true;
-                lastX = xpos;
-                lastY = ypos;
-            } else if (GLFW_RELEASE == action) {
-                left_button_down = false;
-            }
-            break;
-        case GLFW_MOUSE_BUTTON_RIGHT:
-            if (GLFW_PRESS == action) {
-                right_button_down = true;
-                lastX = xpos;
-                lastY = ypos;
-            } else if (GLFW_RELEASE == action) {
-                right_button_down = false;
-            }
-            break;
-        case GLFW_MOUSE_BUTTON_MIDDLE:
-            if (GLFW_PRESS == action) {
-                middle_button_down = true;
-                lastX = xpos;
-                lastY = ypos;
-            } else if (GLFW_RELEASE == action) {
-                middle_button_down = false;
-            }
-            break;
-    }
-}
-
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    float x_offset = xpos - lastX;
-    float y_offset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    if (left_button_down) {
-        // yaw += x_offset;
-        // pitch -= y_offset;
-        yaw = x_offset;
-        pitch = -y_offset;
-    }
-    if (right_button_down) {
-        // x_off += x_offset;
-        // y_off += y_offset;
-        x_off = x_offset;
-        y_off = y_offset;
-    }
-    if (middle_button_down) {
-        camera.ProcessMouseMovement(x_offset, y_offset);
-    }
-}
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(yoffset);
 }
