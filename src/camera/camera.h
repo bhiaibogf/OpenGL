@@ -29,22 +29,22 @@ public:
     // constructor with scalar values
     Camera(float pos_x, float pos_y, float pos_z, float up_x, float up_y, float up_z, float yaw, float pitch);
 
-    const glm::vec3 &get_position() const { return position_; }
+    auto &position() const { return position_; }
 
-    const glm::vec3 &get_front() const { return front_; }
+    auto &front() const { return front_; }
 
-    const glm::vec3 &get_up() const { return up_; }
+    auto &up() const { return up_; }
 
-    const glm::vec3 &get_right() const { return right_; }
+    auto &right() const { return right_; }
 
-    const glm::vec3 &get_world_up() const { return world_up_; }
+    auto &world_up() const { return world_up_; }
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix() {
+    glm::mat4 GetViewMatrix() const {
         return glm::lookAt(position_, position_ + front_, up_);
     }
 
-    glm::mat4 GetProjectionMatrix() {
+    glm::mat4 GetProjectionMatrix() const {
         return glm::perspective(glm::radians(zoom_), (float) kScrWidth / (float) kScrHeight, 0.1f, 20.0f);
     }
 
@@ -61,26 +61,27 @@ private:
     // Default camera values
     constexpr static const float kYaw = -90.0f;
     constexpr static const float kPinch = 0.0f;
+    constexpr static const float kZoom = 45.0f;
+
     constexpr static const float kSpeed = 2.5f;
     constexpr static const float kSensitivity = 0.1f;
-    constexpr static const float kZoom = 45.0f;
 
     const unsigned int kScrWidth = 800;
     const unsigned int kScrHeight = 600;
 
     // camera Attributes
     glm::vec3 position_;
-    glm::vec3 front_, up_, right_;
     glm::vec3 world_up_;
+    glm::vec3 front_, up_, right_;
 
     // euler Angles
     float yaw_;
     float pitch_;
 
     // camera options
+    float zoom_;
     float movement_speed_;
     float mouse_sensitivity_;
-    float zoom_;
 
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();

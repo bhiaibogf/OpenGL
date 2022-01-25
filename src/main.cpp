@@ -84,7 +84,7 @@ int main() {
             PointLight(glm::vec3(1000.f), glm::vec3(-5.0f, 30.0f, -30.f))
     };
     // spotlight
-    SpotLight spot_light(glm::vec3(0.0f), camera.get_position(), camera.get_front(),
+    SpotLight spot_light(glm::vec3(0.0f), camera.position(), camera.front(),
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     path = "resources/textures/hdr/newport_loft.hdr";
     IBL ibl(path);
@@ -113,10 +113,10 @@ int main() {
         WindowsHandler::ProcessInput();
 
         // transformations
-        auto x_translate = glm::translate(glm::mat4(1.f), camera.get_right() * WindowsHandler::offset_x() * 0.01f);
-        auto y_translate = glm::translate(glm::mat4(1.f), camera.get_world_up() * WindowsHandler::offset_y() * 0.01f);
-        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::yaw()), camera.get_world_up());
-        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::pitch()), camera.get_right());
+        auto x_translate = glm::translate(glm::mat4(1.f), camera.right() * WindowsHandler::offset_x() * 0.01f);
+        auto y_translate = glm::translate(glm::mat4(1.f), camera.world_up() * WindowsHandler::offset_y() * 0.01f);
+        auto x_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::yaw()), camera.world_up());
+        auto y_rotate = glm::rotate(glm::mat4(1.f), glm::radians(WindowsHandler::pitch()), camera.right());
         transform.Update(y_rotate * x_rotate * y_translate * x_translate);
 
         WindowsHandler::Clear();
@@ -215,7 +215,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
         pbr_shader.setInt("gSsao", 20);
 
-        pbr_shader.setVec3("camera_pos", camera.get_position());
+        pbr_shader.setVec3("camera_pos", camera.position());
         pbr_shader.setMat4("uWorldToScreen", transform.get_projection() * transform.get_view());
         pbr_shader.setMat4("uView", transform.get_view());
 
