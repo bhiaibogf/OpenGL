@@ -45,7 +45,7 @@ int main() {
     Shader cube_shader("shader/cube.vs", "shader/cube.fs");
 
     // load models
-    string path = "asset/nb574/";
+    string path = "asset/objects/nb574/";
     Model my_model(path + "nb574.obj");
 
     Quad floor;
@@ -86,11 +86,10 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.position(), camera.front(),
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-    path = "resources/textures/hdr/newport_loft.hdr";
+    path = "asset/textures/hdr/newport_loft.hdr";
     IBL ibl(path);
     SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
-    SkyBox sky(CubeMapCreator().ConvertFromSkyBox("resources/textures/skybox/"));
-
+    SkyBox sky(CubeMapCreator().ConvertFromSkyBox("asset/textures/skybox/"));
 
     // g_buffer
     GBuffer g_buffer(kScrWidth, kScrHeight);
