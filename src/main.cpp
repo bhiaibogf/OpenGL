@@ -44,6 +44,10 @@ int main() {
     Shader cube_shader("shader/cube.vs", "shader/cube.fs");
 
     // load models
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    // stbi_set_flip_vertically_on_load(true);
+    // string path = "asset/objects/free_1972_datsun_240k_gt/gltf/";
+    // Scene scene(path + "scene.gltf");
     string path = "asset/objects/nb574/";
     Scene scene(path + "nb574.obj");
     scene.Rotate(270.f, {1.0, 0.0, 0.0});
@@ -57,12 +61,6 @@ int main() {
     mirror.Scale(glm::vec3(2.f));
     mirror.Translate({0, -4, 0});
     mirror.Rotate(45 + 180, {1.0, 0.0, 0.0});
-
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    // stbi_set_flip_vertically_on_load(true);
-    auto albedo_map = Scene::TextureFromFile("nb574.jpg", path, false);
-    auto normal_map = Scene::TextureFromFile("normals.jpg", path, false);
-    auto ao_map = Scene::TextureFromFile("occlusion.jpg", path, false);
 
     SSAO ssao(kScrWidth, kScrHeight);
 
@@ -142,15 +140,7 @@ int main() {
 
         camera.SetShader(g_buffer.get_g_shader());
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, albedo_map);
-        g_buffer.get_g_shader().setInt("uAlbedoMap", 0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, normal_map);
-        g_buffer.get_g_shader().setInt("uNormalMap", 1);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, ao_map);
-        g_buffer.get_g_shader().setInt("uAoMap", 2);
+        scene.SetTexture(g_buffer.get_g_shader());
 
         g_buffer.get_g_shader().setInt("uId", 1);
         scene.Draw(g_buffer.get_g_shader());

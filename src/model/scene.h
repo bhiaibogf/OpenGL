@@ -28,6 +28,8 @@ public:
 
     void Draw(const Shader &shader) const override;
 
+    void SetTexture(const Shader &shader) const;
+
 private:
     vector<Texture> textures_;    // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh> meshes_;
@@ -44,10 +46,9 @@ private:
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
+    vector<Texture> loadMaterialTextures(aiMaterial *material, aiTextureType type, const string &type_name);
 
 public:
-    static unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 };
 
