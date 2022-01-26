@@ -45,8 +45,8 @@ int main() {
 
     // load models
     string path = "asset/objects/nb574/";
-    Scene my_model(path + "nb574.obj");
-    my_model.Rotate(270.f, {1.0, 0.0, 0.0});
+    Scene scene(path + "nb574.obj");
+    scene.Rotate(270.f, {1.0, 0.0, 0.0});
 
     Quad floor;
     floor.Scale(glm::vec3(10.f));
@@ -60,9 +60,9 @@ int main() {
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     // stbi_set_flip_vertically_on_load(true);
-    auto albedo_map = TextureFromFile("nb574.jpg", path, false);
-    auto normal_map = TextureFromFile("normals.jpg", path, false);
-    auto ao_map = TextureFromFile("occlusion.jpg", path, false);
+    auto albedo_map = Scene::TextureFromFile("nb574.jpg", path, false);
+    auto normal_map = Scene::TextureFromFile("normals.jpg", path, false);
+    auto ao_map = Scene::TextureFromFile("occlusion.jpg", path, false);
 
     SSAO ssao(kScrWidth, kScrHeight);
 
@@ -105,13 +105,13 @@ int main() {
 
         // transformations
         // x_translate
-        my_model.Translate(camera.right() * WindowsHandler::offset_x() * 0.01f);
+        scene.Translate(camera.right() * WindowsHandler::offset_x() * 0.01f);
         // y_translate
-        my_model.Translate(camera.world_up() * WindowsHandler::offset_y() * 0.01f);
+        scene.Translate(camera.world_up() * WindowsHandler::offset_y() * 0.01f);
         // x_rotate
-        my_model.Rotate(WindowsHandler::yaw(), camera.world_up());
+        scene.Rotate(WindowsHandler::yaw(), camera.world_up());
         // y_rotate
-        my_model.Rotate(WindowsHandler::pitch(), camera.right());
+        scene.Rotate(WindowsHandler::pitch(), camera.right());
 
         WindowsHandler::Clear();
 
@@ -119,14 +119,14 @@ int main() {
         depth_shader.use();
 
         directional_light.SetDepthShader(depth_shader);
-        my_model.Draw(depth_shader);
+        scene.Draw(depth_shader);
 
         directional_light.SetShader(g_buffer.get_l_shader());
         directional_light.SetShader(pbr_shader);
 
         for (int i = 0; i < 4; i++) {
             point_lights[i].SetDepthShader(depth_shader);
-            my_model.Draw(depth_shader);
+            scene.Draw(depth_shader);
 
             point_lights[i].SetShader(g_buffer.get_l_shader(), i);
             point_lights[i].SetShader(pbr_shader, i);
@@ -139,6 +139,7 @@ int main() {
         glViewport(0, 0, kScrWidth, kScrHeight);
 
         g_buffer.BindGBuffer();
+
         camera.SetShader(g_buffer.get_g_shader());
 
         glActiveTexture(GL_TEXTURE0);
@@ -152,7 +153,7 @@ int main() {
         g_buffer.get_g_shader().setInt("uAoMap", 2);
 
         g_buffer.get_g_shader().setInt("uId", 1);
-        my_model.Draw(g_buffer.get_g_shader());
+        scene.Draw(g_buffer.get_g_shader());
 
         g_buffer.get_g_shader().setInt("uId", 2);
         floor.Draw(g_buffer.get_g_shader());
@@ -163,11 +164,8 @@ int main() {
         g_buffer.BindLBuffer();
 
         camera.SetShader(g_buffer.get_l_shader());
-
-        my_model.Draw(g_buffer.get_l_shader());
-
+        scene.Draw(g_buffer.get_l_shader());
         floor.Draw(g_buffer.get_l_shader());
-
         mirror.Draw(g_buffer.get_l_shader());
 
         g_buffer.UnbindLBuffer();
