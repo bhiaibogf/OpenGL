@@ -120,18 +120,10 @@ int main() {
         directional_light.SetDepthShader(depth_shader);
         scene.SetModelMatrixAndDraw(depth_shader);
 
-        directional_light.SetShader(g_buffer.get_l_shader());
-        directional_light.SetShader(pbr_shader);
-
         for (int i = 0; i < 4; i++) {
             point_lights[i].SetDepthShader(depth_shader);
             scene.Draw();
-
-            point_lights[i].SetShader(g_buffer.get_l_shader(), i);
-            point_lights[i].SetShader(pbr_shader, i);
         }
-
-        spot_light.SetShader(pbr_shader);
 
         // 2. get g buffer
         // reset viewport
@@ -151,6 +143,11 @@ int main() {
         mirror.SetModelMatrixAndDraw(g_buffer.get_g_shader());
 
         g_buffer.BindLBuffer();
+
+        directional_light.SetShader(g_buffer.get_l_shader());
+        for (int i = 0; i < 4; i++) {
+            point_lights[i].SetShader(g_buffer.get_l_shader(), i);
+        }
 
         camera.SetShader(g_buffer.get_l_shader());
         scene.SetModelMatrixAndDraw(g_buffer.get_l_shader());
@@ -174,6 +171,12 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         pbr_shader.use();
+
+        directional_light.SetShader(pbr_shader);
+        for (int i = 0; i < 4; i++) {
+            point_lights[i].SetShader(pbr_shader, i);
+        }
+        spot_light.SetShader(pbr_shader);
 
         g_buffer.SetGBuffer(pbr_shader);
 
