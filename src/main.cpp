@@ -48,7 +48,7 @@ int main() {
     // stbi_set_flip_vertically_on_load(true);
     // string path = "asset/objects/free_1972_datsun_240k_gt/gltf/";
     // Scene scene(path + "scene.gltf");
-    string path = "asset/objects/nb574/";
+    std::string path = "asset/objects/nb574/";
     Scene scene(path + "nb574.obj");
     scene.Rotate(270.f, {1.0, 0.0, 0.0});
 
@@ -80,10 +80,11 @@ int main() {
     // spotlight
     SpotLight spot_light(glm::vec3(0.0f), camera.position(), camera.front(),
                          glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
-    path = "asset/textures/hdr/newport_loft.hdr";
-    IBL ibl(path);
-    SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(path));
-    SkyBox sky(CubeMapCreator().ConvertFromSkyBox("asset/textures/skybox/"));
+    std::string skybox_path = "asset/textures/hdr/newport_loft.hdr";
+    IBL ibl(skybox_path);
+    SkyBox sky_box(CubeMapCreator().ConvertFromEquirectangularMap(skybox_path));
+
+    // SkyBox sky(CubeMapCreator().ConvertFromSkyBox("asset/textures/skybox/"));
 
     // g_buffer
     GBuffer g_buffer(kScrWidth, kScrHeight);

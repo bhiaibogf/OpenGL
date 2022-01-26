@@ -4,7 +4,7 @@
 
 #include "scene.h"
 
-Scene::Scene(string const &path, bool need_gamma_correction) : need_gamma_correction_(need_gamma_correction) {
+Scene::Scene(std::string const &path, bool need_gamma_correction) : need_gamma_correction_(need_gamma_correction) {
     LoadModel(path);
 }
 
@@ -21,7 +21,7 @@ void Scene::SetTextureAndDraw(const Shader &shader) const {
     }
 }
 
-void Scene::LoadModel(const string &path) {
+void Scene::LoadModel(const std::string &path) {
     // read file via ASSIMP
     Assimp::Importer importer;
     auto scene = importer.ReadFile(path,
@@ -29,7 +29,7 @@ void Scene::LoadModel(const string &path) {
                                    aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+        std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
 
@@ -57,9 +57,9 @@ void Scene::ProcessNode(aiNode *node, const aiScene *scene) {
 
 Mesh Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     // data to fill
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Texture> textures;
 
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -108,7 +108,7 @@ Mesh Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     // }
 
     // diffuse maps
-    vector<Texture> diffuse_maps = LoadTextures(material, aiTextureType_DIFFUSE, "uAlbedoMap");
+    std::vector<Texture> diffuse_maps = LoadTextures(material, aiTextureType_DIFFUSE, "uAlbedoMap");
     // 2. specular maps
     // vector<Texture> specular_maps = loadMaterialTextures(material, aiTextureType_SPECULAR, "uSpecular");
     // normal maps
@@ -125,8 +125,8 @@ Mesh Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     return {vertices, indices, textures};
 }
 
-vector<Texture> Scene::LoadTextures(aiMaterial *material, aiTextureType type, const string &type_name) {
-    vector<Texture> textures;
+std::vector<Texture> Scene::LoadTextures(aiMaterial *material, aiTextureType type, const std::string &type_name) {
+    std::vector<Texture> textures;
     for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
         aiString path;
         material->GetTexture(type, i, &path);
