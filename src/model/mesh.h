@@ -16,6 +16,8 @@ public:
     // render the mesh
     void Draw() const override;
 
+    void SetTextureAndDraw(const Shader &shader) const;
+
 private:
     // mesh Data
     std::vector<Vertex> vertices_;

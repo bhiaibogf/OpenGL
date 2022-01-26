@@ -26,9 +26,7 @@ public:
     // draws the model, and thus all its meshes
     void Draw() const override;
 
-    void Draw(const Shader &shader) const override;
-
-    void SetTexture(const Shader &shader) const;
+    void SetTextureAndDraw(const Shader &shader) const;
 
 private:
     vector<Texture> textures_;    // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
@@ -46,7 +44,7 @@ private:
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    vector<Texture> loadMaterialTextures(aiMaterial *material, aiTextureType type, const string &type_name);
+    vector<Texture> LoadTextures(aiMaterial *material, aiTextureType type, const string &type_name);
 
 public:
 

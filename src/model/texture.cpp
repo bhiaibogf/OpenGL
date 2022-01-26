@@ -14,9 +14,17 @@ bool Texture::Is(const std::string &path) const {
 }
 
 void Texture::Set(const Shader &shader) const {
-    glActiveTexture(GL_TEXTURE0 + id_);
+    unsigned int type = -1;
+    if (type_name_ == "uAlbedoMap") {
+        type = 0;
+    } else if (type_name_ == "uNormalMap") {
+        type = 1;
+    } else if (type_name_ == "uAoMap") {
+        type = 2;
+    }
+    glActiveTexture(GL_TEXTURE0 + type);
     glBindTexture(GL_TEXTURE_2D, id_);
-    shader.setInt(type_name_, id_);
+    shader.setInt(type_name_, type);
 }
 
 unsigned int Texture::TextureFromFile(const std::string &path, bool need_gamma_correction) {

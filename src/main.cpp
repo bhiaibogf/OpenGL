@@ -117,14 +117,14 @@ int main() {
         depth_shader.use();
 
         directional_light.SetDepthShader(depth_shader);
-        scene.Draw(depth_shader);
+        scene.SetModelMatrixAndDraw(depth_shader);
 
         directional_light.SetShader(g_buffer.get_l_shader());
         directional_light.SetShader(pbr_shader);
 
         for (int i = 0; i < 4; i++) {
             point_lights[i].SetDepthShader(depth_shader);
-            scene.Draw(depth_shader);
+            scene.Draw();
 
             point_lights[i].SetShader(g_buffer.get_l_shader(), i);
             point_lights[i].SetShader(pbr_shader, i);
@@ -140,23 +140,21 @@ int main() {
 
         camera.SetShader(g_buffer.get_g_shader());
 
-        scene.SetTexture(g_buffer.get_g_shader());
-
         g_buffer.get_g_shader().setInt("uId", 1);
-        scene.Draw(g_buffer.get_g_shader());
+        scene.SetTextureAndDraw(g_buffer.get_g_shader());
 
         g_buffer.get_g_shader().setInt("uId", 2);
-        floor.Draw(g_buffer.get_g_shader());
+        floor.SetModelMatrixAndDraw(g_buffer.get_g_shader());
 
         g_buffer.get_g_shader().setInt("uId", 3);
-        mirror.Draw(g_buffer.get_g_shader());
+        mirror.SetModelMatrixAndDraw(g_buffer.get_g_shader());
 
         g_buffer.BindLBuffer();
 
         camera.SetShader(g_buffer.get_l_shader());
-        scene.Draw(g_buffer.get_l_shader());
-        floor.Draw(g_buffer.get_l_shader());
-        mirror.Draw(g_buffer.get_l_shader());
+        scene.SetModelMatrixAndDraw(g_buffer.get_l_shader());
+        floor.SetModelMatrixAndDraw(g_buffer.get_l_shader());
+        mirror.SetModelMatrixAndDraw(g_buffer.get_l_shader());
 
         g_buffer.UnbindLBuffer();
 

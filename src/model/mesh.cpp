@@ -28,6 +28,13 @@ void Mesh::Draw() const {
     glActiveTexture(GL_TEXTURE0);
 }
 
+void Mesh::SetTextureAndDraw(const Shader &shader) const {
+    for (auto &texture: textures_) {
+        texture.Set(shader);
+    }
+    Draw();
+}
+
 void Mesh::setupMesh() {
     glBindVertexArray(vao_);
 

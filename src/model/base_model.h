@@ -26,12 +26,14 @@ public:
 
     virtual void Draw() const = 0;
 
-    virtual void Draw(const Shader &shader) const;
+    virtual void SetModelMatrixAndDraw(const Shader &shader) const;
 
 protected:
     unsigned int vao_;
     unsigned int vbo_;
     glm::mat4 model_;
+
+    void SetModel(const Shader &shader) const;
 
 };
 

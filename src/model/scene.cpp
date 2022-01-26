@@ -9,13 +9,16 @@ Scene::Scene(string const &path, bool need_gamma_correction) : need_gamma_correc
 }
 
 void Scene::Draw() const {
-    for (const auto &mesh: meshes_)
+    for (const auto &mesh: meshes_) {
         mesh.Draw();
+    }
 }
 
-void Scene::Draw(const Shader &shader) const {
-    BaseModel::Draw(shader);
-    Draw();
+void Scene::SetTextureAndDraw(const Shader &shader) const {
+    SetModel(shader);
+    for (const auto &mesh: meshes_) {
+        mesh.SetTextureAndDraw(shader);
+    }
 }
 
 void Scene::LoadModel(const string &path) {
@@ -105,19 +108,24 @@ Mesh Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     // }
 
     // diffuse maps
-    vector<Texture> diffuse_maps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "uAlbedoMap");
+    vector<Texture> diffuse_maps = LoadTextures(material, aiTextureType_DIFFUSE, "uAlbedoMap");
     // 2. specular maps
-    // vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    // vector<Texture> specular_maps = loadMaterialTextures(material, aiTextureType_SPECULAR, "uSpecular");
     // normal maps
-    std::vector<Texture> normal_maps = loadMaterialTextures(material, aiTextureType_NORMALS, "uNormalMap");
+    std::vector<Texture> normal_maps = LoadTextures(material, aiTextureType_NORMALS, "uNormalMap");
     // ao maps
-    std::vector<Texture> ao_maps = loadMaterialTextures(material, aiTextureType_AMBIENT, "uAoMap");
+    std::vector<Texture> ao_maps = LoadTextures(material, aiTextureType_AMBIENT, "uAoMap");
+
+    textures.insert(textures.end(), diffuse_maps.begin(), diffuse_maps.end());
+    // textures.insert(textures.end(), specular_maps.begin(), specular_maps.end());
+    textures.insert(textures.end(), normal_maps.begin(), normal_maps.end());
+    textures.insert(textures.end(), ao_maps.begin(), ao_maps.end());
 
     // return a mesh object created from the extracted mesh data
     return {vertices, indices, textures};
 }
 
-vector<Texture> Scene::loadMaterialTextures(aiMaterial *material, aiTextureType type, const string &type_name) {
+vector<Texture> Scene::LoadTextures(aiMaterial *material, aiTextureType type, const string &type_name) {
     vector<Texture> textures;
     for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
         aiString path;
@@ -139,10 +147,4 @@ vector<Texture> Scene::loadMaterialTextures(aiMaterial *material, aiTextureType 
         }
     }
     return textures;
-}
-
-void Scene::SetTexture(const Shader &shader) const {
-    for (auto &texture: textures_) {
-        texture.Set(shader);
-    }
 }

@@ -20,11 +20,6 @@ Quad::Quad() {
     glBindVertexArray(0);
 }
 
-void Quad::Draw(const Shader &shader) const {
-    BaseModel::Draw(shader);
-    Draw();
-}
-
 void Quad::Draw() const {
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

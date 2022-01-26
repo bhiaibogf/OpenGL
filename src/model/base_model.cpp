@@ -27,6 +27,11 @@ void BaseModel::Translate(glm::vec3 v) {
     model_ = glm::translate(glm::mat4(1.f), v) * model_;
 }
 
-void BaseModel::Draw(const Shader &shader) const {
+void BaseModel::SetModelMatrixAndDraw(const Shader &shader) const {
+    SetModel(shader);
+    Draw();
+}
+
+void BaseModel::SetModel(const Shader &shader) const {
     shader.setMat4("uModel", model_);
 }
