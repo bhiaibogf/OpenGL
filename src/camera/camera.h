@@ -92,6 +92,8 @@ private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
 
+    void UpdateMatrix();
+
 };
 
 #endif //SKETCHFAB_CAMERA_H

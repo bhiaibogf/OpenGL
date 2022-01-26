@@ -28,6 +28,8 @@ void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime) {
         position_ -= right_ * velocity;
     if (direction == kRight)
         position_ += right_ * velocity;
+
+    UpdateMatrix();
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
@@ -56,6 +58,8 @@ void Camera::ProcessMouseScroll(float yoffset) {
         zoom_ = 1.0f;
     if (zoom_ > 90.0f)
         zoom_ = 90.0f;
+
+    UpdateMatrix();
 }
 
 auto Camera::GetViewMatrix() const {
@@ -77,11 +81,15 @@ void Camera::UpdateCameraVectors() {
     right_ = glm::normalize(glm::cross(front_, world_up_));
     up_ = glm::normalize(glm::cross(right_, front_));
 
-    view_ = GetViewMatrix();
-    projection_ = GetProjectionMatrix();
+    UpdateMatrix();
 }
 
 void Camera::SetShader(const Shader &shader) const {
     shader.setMat4("uView", view_);
     shader.setMat4("uProjection", projection_);
+}
+
+void Camera::UpdateMatrix() {
+    view_ = GetViewMatrix();
+    projection_ = GetProjectionMatrix();
 }
