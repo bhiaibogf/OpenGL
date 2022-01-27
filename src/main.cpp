@@ -94,14 +94,10 @@ int main() {
     DepthShower depth_shower;
     MapShower map_shower;
 
+    Config config;
+
     // render loop
     while (!WindowsHandler::ShouldClose()) {
-        // per-frame time logic
-        WindowsHandler::UpdateTime();
-
-        // input
-        WindowsHandler::ProcessInput();
-
         // transformations
         // x_translate
         scene.Translate(camera.right() * WindowsHandler::offset_x() * 0.01f);
@@ -189,11 +185,11 @@ int main() {
         pbr_shader.setVec3("camera_pos", camera.position());
         camera.SetShader(pbr_shader);
 
-        pbr_shader.setBool("uAmbient", true);
-        pbr_shader.setBool("uLo", true);
-        pbr_shader.setBool("uAo", true);
-        pbr_shader.setBool("uAoMap", true);
-        pbr_shader.setBool("uIbl", true);
+        pbr_shader.setBool("uAmbient", config.ambient);
+        pbr_shader.setBool("uLo", config.lo);
+        pbr_shader.setBool("uAo", config.ao);
+        pbr_shader.setBool("uAoMap", config.ao_map);
+        pbr_shader.setBool("uIbl", config.ibl);
 
         quad.Draw();
 
@@ -236,6 +232,8 @@ int main() {
         // map_shower.Show(g_buffer.get_g_pos_point_light()[2]);
         // map_shower.Show(g_buffer.get_g_pos_point_light()[3]);
 
+        WindowsHandler::ShowImGui(&config);
+        WindowsHandler::ProcessInput();
         WindowsHandler::SwapBuffer();
     }
     return 0;

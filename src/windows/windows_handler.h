@@ -7,9 +7,13 @@
 
 
 #include "../camera/camera.h"
+#include "config.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 class WindowsHandler {
 public:
@@ -25,31 +29,21 @@ public:
 
     static auto offset_y() { return offset_y_; }
 
-    // glfw: whenever the window size changed (by OS or user resize) this callback function executes
-    static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
-
-    static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-
-    // glfw: whenever the mouse moves, this callback is called
-    static void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-
-    // glfw: whenever the mouse scroll wheel scrolls, this callback is called
-    static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
-
-    // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-    static void ProcessInput();
+    static bool ShouldClose();
 
     static void Clear();
 
-    static void UpdateTime();
+    static void ShowImGui(Config *config);
+
+    static void ProcessInput();
 
     static void SwapBuffer();
-
-    static bool ShouldClose();
 
 private:
     static GLFWwindow *window_;
     static Camera *camera_;
+
+    static int width_, height_;
 
     static bool left_button_down_, right_button_down_, middle_button_down_;
 
@@ -59,7 +53,24 @@ private:
 
     static float delta_time_, last_time_;
 
-    static void Init(int width, int height);
+    static void Init();
+
+    static void InitGlfw();
+
+    static void InitGlad();
+
+    static void InitImGui();
+
+    static void UpdateTime();
+
+    static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
+
+    static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+
+    static void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
+
+    static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
 };
 
 
