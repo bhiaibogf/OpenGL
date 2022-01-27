@@ -62,18 +62,70 @@ void WindowsHandler::ShowImGui(Config *config) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Hello, world!");
+    ImGui::Begin("rendering controller");
 
-    ImGui::Text("This is some useful text.");
+    ImGui::RadioButton("renderer", (int *) &(config->type), (int) Type::kRenderer);
+    ImGui::SameLine();
+    ImGui::RadioButton("prt", (int *) &(config->type), (int) Type::kPrt);
+    ImGui::RadioButton("l-buffer", (int *) &(config->type), (int) Type::kLBuffer);
+    ImGui::SameLine();
+    ImGui::RadioButton("g-buffer", (int *) &(config->type), (int) Type::kGBuffer);
 
-    ImGui::Checkbox("add ambient", &config->ambient);
-    ImGui::Checkbox("add direct light", &config->lo);
-    ImGui::Checkbox("add ao", &config->ao);
-    ImGui::Checkbox("use ao_map", &config->ao_map);
-    ImGui::Checkbox("use ibl", &config->ibl);
+    switch (config->type) {
+        case Type::kRenderer:
+            ImGui::Text("Show scene.\n");
+
+            ImGui::Checkbox("add ambient", &config->ambient);
+            ImGui::Checkbox("add direct light", &config->lo);
+            ImGui::Checkbox("add ao", &config->ao);
+            ImGui::Checkbox("use ao_map", &config->ao_map);
+            ImGui::Checkbox("use ibl", &config->ibl);
+            break;
+        case Type::kPrt:
+            ImGui::Text("Show prt.\n");
+
+            ImGui::RadioButton("skybox", (int *) &(config->prt), (int) Prt::kSkybox);
+            ImGui::SameLine();
+            ImGui::RadioButton("irradiance", (int *) &(config->prt), (int) Prt::kIrradiance);
+            ImGui::RadioButton("prefilter", (int *) &(config->prt), (int) Prt::kPrefilter);
+            ImGui::SameLine();
+            ImGui::RadioButton("lut", (int *) &(config->prt), (int) Prt::kLut);
+            break;
+        case Type::kLBuffer:
+            ImGui::Text("Show l-buffer.\n");
+
+            ImGui::RadioButton("directional light depth", (int *) &(config->l_buf), (int) LBuf::kDir);
+            ImGui::SameLine();
+            ImGui::RadioButton("point light depth", (int *) &(config->l_buf), (int) LBuf::kPoint);
+
+            ImGui::RadioButton("directional light position", (int *) &(config->l_buf), (int) LBuf::kDirPos);
+            ImGui::SameLine();
+            ImGui::RadioButton("point light position", (int *) &(config->l_buf), (int) LBuf::kPointPos);
+
+            if (config->l_buf == LBuf::kPoint || config->l_buf == LBuf::kPointPos) {
+                ImGui::SliderInt("which point light", &config->light, 0, 3);
+            }
+            break;
+        case Type::kGBuffer:
+            ImGui::Text("Show g-buffer.\n");
+
+            ImGui::RadioButton("position", (int *) &(config->g_buf), (int) GBuf::kPos);
+            ImGui::SameLine();
+            ImGui::RadioButton("albedo", (int *) &(config->g_buf), (int) GBuf::kAlb);
+            ImGui::RadioButton("normal", (int *) &(config->g_buf), (int) GBuf::kNorm);
+            ImGui::SameLine();
+            ImGui::RadioButton("depth", (int *) &(config->g_buf), (int) GBuf::kDepth);
+            ImGui::RadioButton("id", (int *) &(config->g_buf), (int) GBuf::kId);
+            ImGui::SameLine();
+            ImGui::RadioButton("ao", (int *) &(config->g_buf), (int) GBuf::kAo);
+            break;
+    }
+
+    ImGui::Separator();
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
     ImGui::End();
 
     // Rendering

@@ -166,71 +166,110 @@ int main() {
         glClearColor(0.f, 0.f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pbr_shader.use();
+        if (config.type == Type::kRenderer) {
+            pbr_shader.use();
 
-        directional_light.SetShader(pbr_shader);
-        for (int i = 0; i < 4; i++) {
-            point_lights[i].SetShader(pbr_shader, i);
+            directional_light.SetShader(pbr_shader);
+            for (int i = 0; i < 4; i++) {
+                point_lights[i].SetShader(pbr_shader, i);
+            }
+            spot_light.SetShader(pbr_shader);
+
+            g_buffer.SetGBuffer(pbr_shader);
+
+            ibl.SetIblMap(pbr_shader);
+
+            glActiveTexture(GL_TEXTURE20);
+            glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
+            pbr_shader.setInt("gSsao", 20);
+
+            pbr_shader.setVec3("camera_pos", camera.position());
+            camera.SetShader(pbr_shader);
+
+            pbr_shader.setBool("uAmbient", config.ambient);
+            pbr_shader.setBool("uLo", config.lo);
+            pbr_shader.setBool("uAo", config.ao);
+            pbr_shader.setBool("uAoMap", config.ao_map);
+            pbr_shader.setBool("uIbl", config.ibl);
+
+            quad.Draw();
+
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT,
+                              GL_NEAREST);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            cube_shader.use();
+            camera.SetShader(cube_shader);
+            for (auto &point_light: point_lights) {
+                point_light.Draw(cube_shader);
+            }
+            sky_box.Draw(camera);
+            // sky.Draw(camera);
         }
-        spot_light.SetShader(pbr_shader);
 
-        g_buffer.SetGBuffer(pbr_shader);
-
-        ibl.SetIblMap(pbr_shader);
-
-        glActiveTexture(GL_TEXTURE20);
-        glBindTexture(GL_TEXTURE_2D, ssao.get_ssao_blur());
-        pbr_shader.setInt("gSsao", 20);
-
-        pbr_shader.setVec3("camera_pos", camera.position());
-        camera.SetShader(pbr_shader);
-
-        pbr_shader.setBool("uAmbient", config.ambient);
-        pbr_shader.setBool("uLo", config.lo);
-        pbr_shader.setBool("uAo", config.ao);
-        pbr_shader.setBool("uAoMap", config.ao_map);
-        pbr_shader.setBool("uIbl", config.ibl);
-
-        quad.Draw();
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer.get_fbo());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, kScrWidth, kScrHeight, 0, 0, kScrWidth, kScrHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        cube_shader.use();
-        camera.SetShader(cube_shader);
-        for (auto &point_light: point_lights) {
-            point_light.Draw(cube_shader);
+        if (config.type == Type::kPrt) {
+            switch (config.prt) {
+                case Prt::kSkybox:
+                    SkyBox(ibl.get_sky_box()).Draw(camera);
+                    break;
+                case Prt::kIrradiance:
+                    SkyBox(ibl.get_irradiance_map()).Draw(camera);
+                    break;
+                case Prt::kPrefilter:
+                    SkyBox(ibl.get_prefilter_map()).Draw(camera);
+                    break;
+                case Prt::kLut:
+                    map_shower.Show(ibl.get_lut_map());
+                    break;
+            }
         }
-        sky_box.Draw(camera);
-        // sky.Draw(camera);
-        // SkyBox(ibl.get_sky_box()).Draw(camera);
-        // SkyBox(ibl.get_irradiance_map()).Draw(camera);
-        // SkyBox(ibl.get_prefilter_map()).Draw(camera);
 
-        // 5. debug
-        // depth_shower.Show(directional_light);
-        // depth_shower.Show(point_lights[0]);
-        // depth_shower.Show(g_buffer.get_g_depth());
+        if (config.type == Type::kLBuffer) {
+            switch (config.l_buf) {
+                case LBuf::kDir:
+                    depth_shower.Show(directional_light);
+                    break;
+                case LBuf::kPoint:
+                    depth_shower.Show(point_lights[config.light]);
+                    break;
+                case LBuf::kDirPos:
+                    map_shower.Show(g_buffer.get_g_pos_dir_light());
+                    break;
+                case LBuf::kPointPos:
+                    map_shower.Show(g_buffer.get_g_pos_point_light()[config.light]);
+                    break;
+            }
+        }
 
-        // map_shower.Show(ibl.get_lut_map());
-        // map_shower.Show(Sampler::GenerateNoiseMap());
-        // map_shower.Show(ssao.get_ssao(), 0);
-        // map_shower.Show(ssao.get_ssao_blur(), 0);
-        // map_shower.Show(g_buffer.get_g_position());
-        // map_shower.Show(g_buffer.get_g_normal_id());
-        // map_shower.Show(g_buffer.get_g_albedo());
-        // map_shower.Show(g_buffer.get_g_normal_id(), 3);
-        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 0);
-        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 1);
-        // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 2);
-
-        // map_shower.Show(g_buffer.get_g_pos_dir_light());
-        // map_shower.Show(g_buffer.get_g_pos_point_light()[0]);
-        // map_shower.Show(g_buffer.get_g_pos_point_light()[1]);
-        // map_shower.Show(g_buffer.get_g_pos_point_light()[2]);
-        // map_shower.Show(g_buffer.get_g_pos_point_light()[3]);
+        if (config.type == Type::kGBuffer) {
+            switch (config.g_buf) {
+                case (GBuf::kPos):
+                    map_shower.Show(g_buffer.get_g_position());
+                    break;
+                case (GBuf::kAlb):
+                    map_shower.Show(g_buffer.get_g_albedo());
+                    break;
+                case (GBuf::kNorm):
+                    map_shower.Show(g_buffer.get_g_normal_id());
+                    break;
+                case (GBuf::kId):
+                    map_shower.Show(g_buffer.get_g_normal_id(), 3);
+                    break;
+                case (GBuf::kAo):
+                    // map_shower.Show(Sampler::GenerateNoiseMap());
+                    // map_shower.Show(ssao.get_ssao(), 0);
+                    // map_shower.Show(ssao.get_ssao_blur(), 0);
+                    map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 0);
+                    break;
+                case (GBuf::kDepth):
+                    depth_shower.Show(g_buffer.get_g_depth());
+                    break;
+                    // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 1);
+                    // map_shower.Show(g_buffer.get_g_ao_metallic_roughness(), 2);
+            }
+        }
 
         WindowsHandler::ShowImGui(&config);
         WindowsHandler::ProcessInput();
